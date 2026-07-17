@@ -59,6 +59,64 @@ Abre <http://localhost:3000>.
 | `valentina@misescorts.com` | Profesional verificada premium |
 | `cliente@misescorts.com` | Cliente verificado |
 
+## Producción y despliegues
+
+El sitio corre en **<https://misescorts.com>**: VPS de Vultr (Miami) con
+[Dokploy](https://dokploy.com), HTTPS de Let's Encrypt (renovación automática)
+y despliegue continuo desde GitHub. La guía de aprovisionamiento completa
+(VPS, DNS, variables, backups) está en [DEPLOY.md](DEPLOY.md).
+
+### Hacer un cambio y desplegarlo
+
+```bash
+# 1. Desarrolla y prueba en local
+npm run dev                  # (npm run build si tocaste config/deps)
+
+# 2. Sube el cambio
+git add . && git commit -m "descripción del cambio" && git push
+```
+
+El push a `main` dispara el webhook de Dokploy y el deploy sale solo (~5 min
+de build). Progreso en: panel Dokploy → proyecto → servicio Compose →
+**Deployments**. Al terminar, verifica en <https://misescorts.com>.
+
+### Cambios de esquema (Prisma)
+
+```bash
+# 1. En local: edita prisma/schema.prisma y crea la migración
+npm run db:migrate           # la aplica a tu BD local y la deja en prisma/migrations/
+
+# 2. Commit + push (la migración viaja con el código)
+
+# 3. En el VPS (SSH), cuando el deploy termine:
+cd /etc/dokploy/compose/*/code
+docker compose -f docker-compose.prod.yml --profile tools run --rm migrate
+```
+
+### Variables de entorno y dominios
+
+Se cambian en el panel de Dokploy (pestañas **Environment** y **Domains** del
+servicio Compose) y **siempre requieren Redeploy** para aplicarse — las rutas
+de Traefik y las variables se materializan en el deploy. Además, las
+`NEXT_PUBLIC_*` se incrustan en el bundle durante el build: cambiarlas sin
+redeploy no tiene ningún efecto.
+
+### Rollback
+
+```bash
+git revert <commit-malo> && git push   # el webhook despliega la reversión
+```
+
+### Operación
+
+- **Logs**: panel Dokploy (servicio → Logs) o en el VPS `docker ps` para ver el
+  nombre del contenedor y `docker logs <contenedor-app> --tail 100`.
+- **Backups**: nocturnos y cifrados a Backblaze B2 (`scripts/backup.sh` +
+  cron; configuración en DEPLOY.md §7). Probar la restauración cada tanto.
+- **Certificados**: Traefik renueva Let's Encrypt automáticamente.
+- **BD de producción**: solo accesible desde la red interna de Docker del VPS
+  (sin puerto expuesto); para inspeccionarla, `docker exec` al contenedor `db`.
+
 ## Estructura
 
 ```
@@ -87,4 +145,4 @@ src/app/
 - Los documentos de identidad solo son visibles para el usuario dueño y los administradores.
 - El teléfono nunca se muestra públicamente; el chat es interno.
 - Cuentas bloqueadas/suspendidas pierden sus sesiones activas.
-- Pendiente para producción: HTTPS (obligatorio también para que el push funcione fuera de localhost), rate limiting, almacenamiento de archivos en S3/R2 y pasarela de pagos para membresías. Nunca se envían correos: las notificaciones son en plataforma y push opcional.
+- En producción ya hay HTTPS (Let's Encrypt vía Dokploy/Traefik), age-gate +18 y GA4. Pendiente: rate limiting, CDN para media cuando el tráfico de video pese (Bunny.net) y pasarela de pagos para membresías. Nunca se envían correos: las notificaciones son en plataforma y push opcional.
