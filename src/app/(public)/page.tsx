@@ -6,7 +6,7 @@ import { WorkerCatalog, VISIBLE_WORKER_PROFILE } from "@/components/worker-catal
 
 export const metadata: Metadata = {
   title: {
-    absolute: `Prepagos en Colombia — Perfiles verificados | ${SITE_NAME}`,
+    absolute: `Escorts y prepagos en Colombia — Perfiles verificados | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   // Las variantes con filtros (?pais=&ciudad=) canonicalizan a la portada.
@@ -50,10 +50,10 @@ export default async function HomePage({
           Solo perfiles con identidad verificada · Mayores de 18 años
         </p>
         <h1 className="mx-auto max-w-3xl text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          Prepagos y acompañantes con perfil verificado en Colombia
+          Escorts, prepagos y acompañantes con perfil verificado en Colombia
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-zinc-400">
-          Directorio de prepagos, escorts y damas de compañía con identidad
+          Directorio de escorts, prepagos y damas de compañía con identidad
           verificada por nuestro equipo: fotos reales, reseñas y agenda.
           Explora libremente; para chatear o agendar solo necesitas una cuenta
           gratuita.{" "}

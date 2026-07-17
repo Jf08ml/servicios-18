@@ -66,7 +66,7 @@ enum MediaKind {
 }
 
 enum VerificationLevel {
-  QUICK // foto sosteniendo cartel "Prepagoniacas" + fecha
+  QUICK // foto sosteniendo cartel "Mis Escorts" + fecha
   FULL // documento + selfie (se exige ante reportes/sospechas)
 }
 

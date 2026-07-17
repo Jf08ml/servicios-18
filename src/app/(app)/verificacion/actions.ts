@@ -16,7 +16,7 @@ function revalidateVerification() {
 
 /**
  * Verificación rápida: una sola foto sosteniendo un papel que diga
- * "Prepagoniacas" y la fecha del día. La fecha de envío queda registrada
+ * "Mis Escorts" y la fecha del día. La fecha de envío queda registrada
  * en submittedAt para contrastarla con la escrita en el papel.
  */
 export async function submitQuickVerificationAction(

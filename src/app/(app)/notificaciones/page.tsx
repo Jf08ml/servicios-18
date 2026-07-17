@@ -51,7 +51,7 @@ export default async function NotificacionesPage() {
       <p className="text-xs text-zinc-500">
         💡 Para recibir avisos en tu teléfono como una app,{" "}
         <Link href="/instalar" className="font-medium text-fuchsia-400 hover:text-fuchsia-300">
-          instala Prepagoniacas en tu pantalla de inicio
+          instala Mis Escorts en tu pantalla de inicio
         </Link>
         {" "}(en iPhone es obligatorio para que lleguen las notificaciones).
       </p>

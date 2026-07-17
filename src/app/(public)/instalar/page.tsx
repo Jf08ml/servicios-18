@@ -77,7 +77,7 @@ export default function InstalarPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div className="text-center">
-        <h1 className={pageTitle}>Instala Prepagoniacas como app</h1>
+        <h1 className={pageTitle}>Instala Mis Escorts como app</h1>
         <p className="mx-auto mt-2 max-w-lg text-sm text-zinc-400">
           Sin tiendas de aplicaciones ni descargas pesadas: la web se instala
           directo en tu teléfono, con su propio ícono y notificaciones. Ideal

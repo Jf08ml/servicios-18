@@ -19,7 +19,7 @@ export function Logo({ href = "/" }: { href?: string }) {
         />
       </svg>
       <span className="text-lg font-bold tracking-tight text-white">
-        Prepago<span className="text-fuchsia-400">niacas</span>
+        Mis<span className="text-fuchsia-400">Escorts</span>
       </span>
     </Link>
   );

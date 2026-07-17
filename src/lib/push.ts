@@ -4,7 +4,7 @@ import { db } from "./db";
 
 const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const privateKey = process.env.VAPID_PRIVATE_KEY;
-const subject = process.env.VAPID_SUBJECT ?? "mailto:soporte@prepagoniacas.local";
+const subject = process.env.VAPID_SUBJECT ?? "mailto:soporte@misescorts.com";
 
 const pushEnabled = !!publicKey && !!privateKey;
 if (pushEnabled) {

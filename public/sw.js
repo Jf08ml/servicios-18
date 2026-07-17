@@ -1,4 +1,4 @@
-/* Service worker de Prepagoniacas: instalabilidad + notificaciones push. */
+/* Service worker de Mis Escorts: instalabilidad + notificaciones push. */
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -13,10 +13,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "Prepagoniacas", body: event.data ? event.data.text() : "" };
+    data = { title: "Mis Escorts", body: event.data ? event.data.text() : "" };
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || "Prepagoniacas", {
+    self.registration.showNotification(data.title || "Mis Escorts", {
       body: data.body || "",
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",

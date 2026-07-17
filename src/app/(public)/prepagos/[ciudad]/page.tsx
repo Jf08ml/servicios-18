@@ -43,11 +43,11 @@ export async function generateMetadata({
     .filter((part) => part && part !== geo.city)
     .join(", ");
   return {
-    title: `Prepagos en ${geo.city} — Perfiles verificados`,
-    description: `Prepagos, escorts y acompañantes con identidad verificada en ${geo.city}${region ? ` (${region})` : ""}: fotos reales, reseñas y agenda. Explora gratis, sin registro.`,
+    title: `Escorts y prepagos en ${geo.city} — Perfiles verificados`,
+    description: `Escorts, prepagos, acompañantes y damas de compañía con identidad verificada en ${geo.city}${region ? ` (${region})` : ""}: fotos reales, reseñas y agenda. Explora gratis, sin registro.`,
     alternates: { canonical: `/prepagos/${ciudad}` },
     openGraph: {
-      title: `Prepagos en ${geo.city} — Perfiles verificados | ${SITE_NAME}`,
+      title: `Escorts y prepagos en ${geo.city} — Perfiles verificados | ${SITE_NAME}`,
       url: absUrl(`/prepagos/${ciudad}`),
     },
   };
@@ -81,7 +81,7 @@ export default async function PrepagosCiudadPage({
       {
         "@type": "ListItem",
         position: 2,
-        name: `Prepagos en ${geo.city}`,
+        name: `Escorts y prepagos en ${geo.city}`,
         item: absUrl(`/prepagos/${ciudad}`),
       },
     ],
@@ -98,13 +98,13 @@ export default async function PrepagosCiudadPage({
           <Link href="/" className="hover:text-zinc-300">
             Inicio
           </Link>{" "}
-          / <span className="text-zinc-400">Prepagos en {geo.city}</span>
+          / <span className="text-zinc-400">Escorts y prepagos en {geo.city}</span>
         </nav>
         <h1 className="max-w-3xl text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          Prepagos en {geo.city}
+          Escorts y prepagos en {geo.city}
         </h1>
         <p className="mt-3 max-w-2xl text-zinc-400">
-          Prepagos, escorts y damas de compañía en {geo.city}
+          Escorts, prepagos, acompañantes y damas de compañía en {geo.city}
           {geo.stateName && geo.stateName !== geo.city
             ? `, ${geo.stateName}`
             : ""}{" "}

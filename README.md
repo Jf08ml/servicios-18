@@ -1,4 +1,4 @@
-# Prepagoniacas — Perfiles verificados y citas seguras
+# Mis Escorts — Perfiles verificados y citas seguras
 
 Plataforma web (responsive/PWA-ready) de **seguridad, confianza y gestión** para
 trabajadores independientes de servicios para adultos y sus clientes. La
@@ -54,10 +54,10 @@ Abre <http://localhost:3000>.
 
 | Correo | Rol |
 | --- | --- |
-| `admin@prepagoniacas.local` | Administración |
-| `hotel@prepagoniacas.local` | Hotel aliado (Hotel Luna Azul) |
-| `valentina@prepagoniacas.local` | Profesional verificada premium |
-| `cliente@prepagoniacas.local` | Cliente verificado |
+| `admin@misescorts.com` | Administración |
+| `hotel@misescorts.com` | Hotel aliado (Hotel Luna Azul) |
+| `valentina@misescorts.com` | Profesional verificada premium |
+| `cliente@misescorts.com` | Cliente verificado |
 
 ## Estructura
 

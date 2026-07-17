@@ -32,7 +32,7 @@ export function QuickVerificationForm() {
         <li>
           Escribe a mano en un papel:{" "}
           <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-fuchsia-300">
-            Prepagoniacas · {today}
+            Mis Escorts · {today}
           </span>
         </li>
         <li>Tómate una foto sosteniendo el papel. Tu rostro y el texto deben verse con claridad.</li>

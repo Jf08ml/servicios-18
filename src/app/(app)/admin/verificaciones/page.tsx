@@ -83,7 +83,7 @@ export default async function AdminVerificacionesPage() {
                 />
                 <p className="mt-1 text-center text-xs text-zinc-500">
                   {v.level === "QUICK"
-                    ? "Foto sosteniendo el cartel «Prepagoniacas + fecha»"
+                    ? "Foto sosteniendo el cartel «Mis Escorts + fecha»"
                     : "Selfie con documento"}
                 </p>
               </a>

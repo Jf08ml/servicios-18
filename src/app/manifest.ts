@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Prepagoniacas",
-    short_name: "Prepagoniacas",
+    name: "Mis Escorts",
+    short_name: "Mis Escorts",
     description:
       "Perfiles verificados, chat seguro, agenda y hoteles aliados. Exclusivo para mayores de 18 años.",
     start_url: "/",

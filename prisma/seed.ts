@@ -11,23 +11,23 @@ async function main() {
 
   // ── Admin ────────────────────────────────────────────────
   await db.user.upsert({
-    where: { email: "admin@prepagoniacas.local" },
+    where: { email: "admin@misescorts.com" },
     update: {},
     create: {
-      email: "admin@prepagoniacas.local",
+      email: "admin@misescorts.com",
       passwordHash,
       role: "ADMIN",
-      displayName: "Equipo Prepagoniacas",
+      displayName: "Equipo Mis Escorts",
       birthDate,
     },
   });
 
   // ── Cuenta de hotel + hotel aliado ───────────────────────
   const hotelUser = await db.user.upsert({
-    where: { email: "hotel@prepagoniacas.local" },
+    where: { email: "hotel@misescorts.com" },
     update: {},
     create: {
-      email: "hotel@prepagoniacas.local",
+      email: "hotel@misescorts.com",
       passwordHash,
       role: "HOTEL",
       displayName: "Hotel Luna Azul",
@@ -70,10 +70,10 @@ async function main() {
 
   // ── Profesional verificada ───────────────────────────────
   const worker = await db.user.upsert({
-    where: { email: "valentina@prepagoniacas.local" },
+    where: { email: "valentina@misescorts.com" },
     update: {},
     create: {
-      email: "valentina@prepagoniacas.local",
+      email: "valentina@misescorts.com",
       passwordHash,
       role: "WORKER",
       displayName: "Valentina",
@@ -116,10 +116,10 @@ async function main() {
 
   // ── Cliente verificado ───────────────────────────────────
   const client = await db.user.upsert({
-    where: { email: "cliente@prepagoniacas.local" },
+    where: { email: "cliente@misescorts.com" },
     update: {},
     create: {
-      email: "cliente@prepagoniacas.local",
+      email: "cliente@misescorts.com",
       passwordHash,
       role: "CLIENT",
       displayName: "Andrés M.",
@@ -189,10 +189,10 @@ async function main() {
 
   console.log("Seed completado.");
   console.log("Cuentas de prueba (contraseña: password123):");
-  console.log("  admin@prepagoniacas.local      → Administración");
-  console.log("  hotel@prepagoniacas.local      → Panel de hotel aliado");
-  console.log("  valentina@prepagoniacas.local  → Profesional verificada (premium)");
-  console.log("  cliente@prepagoniacas.local    → Cliente verificado");
+  console.log("  admin@misescorts.com      → Administración");
+  console.log("  hotel@misescorts.com      → Panel de hotel aliado");
+  console.log("  valentina@misescorts.com  → Profesional verificada (premium)");
+  console.log("  cliente@misescorts.com    → Cliente verificado");
 }
 
 main()

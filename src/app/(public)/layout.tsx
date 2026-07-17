@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
 import { Logo } from "@/components/logo";
+import { SITE_NAME } from "@/lib/site";
 import { btnPrimary, btnSecondary } from "@/lib/ui";
 
 export default async function PublicLayout({
@@ -52,7 +53,7 @@ export default async function PublicLayout({
             📲 Instalar como app
           </Link>
         </p>
-        <p className="mt-2">© {new Date().getFullYear()} Prepagoniacas</p>
+        <p className="mt-2">© {new Date().getFullYear()} {SITE_NAME}</p>
       </footer>
     </div>
   );

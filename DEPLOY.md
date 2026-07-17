@@ -54,7 +54,7 @@ hPanel → Dominios → tu dominio → **DNS / Nameservers**:
 | Tipo  | Nombre | Valor        | TTL   |
 |-------|--------|--------------|-------|
 | A     | @      | IP_DEL_VPS   | 14400 |
-| CNAME | www    | tudominio.com| 14400 |
+| CNAME | www    | misescorts.com| 14400 |
 
 (Para migraciones futuras: bajar el TTL a 300 un día antes de cambiar la IP.)
 
@@ -66,10 +66,10 @@ hPanel → Dominios → tu dominio → **DNS / Nameservers**:
 4. En **Environment**, pega las variables de `.env.production.example` con
    valores reales:
    - `POSTGRES_PASSWORD` → `openssl rand -hex 24`
-   - `NEXT_PUBLIC_SITE_URL` → `https://tudominio.com`
+   - `NEXT_PUBLIC_SITE_URL` → `https://misescorts.com`
    - VAPID: genera un par **nuevo** con `npx web-push generate-vapid-keys`
 5. **Deploy**. El primer build tarda varios minutos.
-6. En **Domains** del servicio: host `tudominio.com`, service `app`, port
+6. En **Domains** del servicio: host `misescorts.com`, service `app`, port
    `3000`, HTTPS on (Let's Encrypt). Repite para `www`.
 
 Desde ahora, cada `git push` a `main` despliega solo.
@@ -91,9 +91,9 @@ contraseña fuerte) o cambia las contraseñas apenas entres:
 docker compose -f docker-compose.prod.yml --profile tools run --rm migrate npm run db:seed
 ```
 
-Los cambios de esquema futuros son el mismo comando `migrate` (usa
-`prisma db push`; si algún cambio implica pérdida de datos, Prisma lo aborta
-y te lo dice — ahí decides con `--accept-data-loss` o migración manual).
+Los cambios de esquema futuros son el mismo comando `migrate`: aplica las
+migraciones pendientes de `prisma/migrations/` (las creas en local con
+`npm run db:migrate` y llegan al VPS con el push).
 
 ## 7. Backups cifrados a Backblaze B2
 
@@ -125,11 +125,12 @@ crontab -e   # añadir:
 
 ## 8. Post-despliegue
 
-- [ ] Verifica el sitio en `https://tudominio.com` (perfil, subida de fotos, push).
-- [ ] Google Search Console: verifica el dominio y envía `https://tudominio.com/sitemap.xml` (pendiente de la estrategia SEO).
+- [ ] Verifica el sitio en `https://misescorts.com` (perfil, subida de fotos, push).
+- [ ] Google Search Console: verifica el dominio y envía `https://misescorts.com/sitemap.xml` (pendiente de la estrategia SEO).
 - [ ] Cambia/elimina las cuentas seed de prueba.
-- [ ] Age-gate de entrada + registros de verificación de edad — **pendiente de
-  implementar**; condición práctica de la política de Vultr para contenido adulto.
+- [ ] Age-gate: ya implementado (`src/components/age-gate.tsx`); verifica que
+  aparece en la primera visita. Los registros de verificación de identidad/edad
+  quedan en la BD (módulo de verificación) — condición práctica de Vultr.
 
 ## Si hay que migrar de host (plan B: MojoHost / ViceTemple)
 

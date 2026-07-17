@@ -61,7 +61,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/servicios18?schema=public
-    command: npx prisma db push --skip-generate
+    command: npx prisma migrate deploy
 
 volumes:
   pgdata:
