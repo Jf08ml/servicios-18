@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { AgeGate } from "@/components/age-gate";
+import { Analytics } from "@/components/analytics";
 import { PwaRegister } from "@/components/pwa-register";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -67,6 +68,7 @@ export default function RootLayout({
         {children}
         <AgeGate />
         <PwaRegister />
+        <Analytics />
       </body>
     </html>
   );

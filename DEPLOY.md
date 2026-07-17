@@ -126,6 +126,7 @@ crontab -e   # añadir:
 ## 8. Post-despliegue
 
 - [ ] Verifica el sitio en `https://misescorts.com` (perfil, subida de fotos, push).
+- [ ] Google Analytics: abre GA4 → Informes → Tiempo real y confirma que tu visita aparece (solo emite en producción).
 - [ ] Google Search Console: verifica el dominio y envía `https://misescorts.com/sitemap.xml` (pendiente de la estrategia SEO).
 - [ ] Cambia/elimina las cuentas seed de prueba.
 - [ ] Age-gate: ya implementado (`src/components/age-gate.tsx`); verifica que
