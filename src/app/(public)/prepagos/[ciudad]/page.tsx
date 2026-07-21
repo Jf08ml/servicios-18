@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { absUrl, SITE_NAME, slugify } from "@/lib/site";
 import { WorkerCatalog, VISIBLE_WORKER_PROFILE } from "@/components/worker-catalog";
@@ -61,6 +62,7 @@ export default async function PrepagosCiudadPage({
   const { ciudad } = await params;
   const geo = await resolveCity(ciudad);
   if (!geo?.city) notFound();
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   const otherCities = (
     await db.profile.findMany({
@@ -91,6 +93,7 @@ export default async function PrepagosCiudadPage({
     <div className="space-y-8">
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <section className="pt-4 sm:pt-6">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { getCurrentUser, isPremium } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { card, pageTitle, btnSecondary, btnPrimary } from "@/lib/ui";
@@ -73,6 +74,7 @@ export default async function PerfilDetallePage({
 }) {
   const user = await getCurrentUser();
   const { id } = await params;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   const worker = await db.user.findFirst({
     where: { id, role: "WORKER" },
@@ -157,6 +159,7 @@ export default async function PerfilDetallePage({
       {jsonLd && (
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}

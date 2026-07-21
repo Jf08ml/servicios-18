@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { absUrl, SITE_DESCRIPTION, SITE_NAME, slugify } from "@/lib/site";
 import { WorkerCatalog, VISIBLE_WORKER_PROFILE } from "@/components/worker-catalog";
@@ -19,6 +20,7 @@ export default async function HomePage({
   searchParams: Promise<{ pais?: string; depto?: string; ciudad?: string }>;
 }) {
   const { pais, depto, ciudad } = await searchParams;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   const cityRows = await db.profile.findMany({
     where: VISIBLE_WORKER_PROFILE,
@@ -43,6 +45,7 @@ export default async function HomePage({
     <div className="space-y-8">
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <section className="pt-4 text-center sm:pt-8">

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { AgeGate } from "@/components/age-gate";
 import { Analytics } from "@/components/analytics";
 import { PwaRegister } from "@/components/pwa-register";
@@ -59,16 +60,17 @@ export const viewport: Viewport = {
   themeColor: "#09090b",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="es">
       <body className="min-h-dvh">
         {children}
         <AgeGate />
         <PwaRegister />
-        <Analytics />
+        <Analytics nonce={nonce} />
       </body>
     </html>
   );

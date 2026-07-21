@@ -9,7 +9,7 @@ const GA_ID = "G-EHSVM19BSY";
  * las registra solo la "medición mejorada" de GA4 (detecta cambios de la
  * History API), activada por defecto en la propiedad.
  */
-export function Analytics() {
+export function Analytics({ nonce }: { nonce?: string }) {
   if (process.env.NODE_ENV !== "production") return null;
 
   return (
@@ -17,8 +17,9 @@ export function Analytics() {
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         strategy="afterInteractive"
+        nonce={nonce}
       />
-      <Script id="ga-gtag" strategy="afterInteractive">
+      <Script id="ga-gtag" strategy="afterInteractive" nonce={nonce}>
         {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());

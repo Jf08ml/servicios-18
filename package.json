@@ -29,6 +29,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@types/web-push": "^3.6.4",
+    "playwright": "^1.61.1",
     "prisma": "^6.8.0",
     "tailwindcss": "^4.1.7",
     "tsx": "^4.19.0",

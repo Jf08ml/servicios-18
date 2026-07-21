@@ -10,3 +10,13 @@ uploads/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+passwords.txt
+
+# Prospección: sesión del navegador y CSV con datos personales — nunca al repo
+scripts/.browser-profile/
+scripts/out/
+
+
+extract-leads-BROWSER-CONSOLE.js
+scrape-leads.mjs
