@@ -46,6 +46,7 @@ export default async function HomePage({
       <script
         type="application/ld+json"
         nonce={nonce}
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <section className="pt-4 text-center sm:pt-8">

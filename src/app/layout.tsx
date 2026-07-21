@@ -47,6 +47,9 @@ export const metadata: Metadata = {
     rating: "RTA-5042-1996-1400-1577-RTA",
   },
   icons: {
+    // Explícito a propósito: si "icons" está presente, Next.js deja de
+    // detectar automáticamente app/icon.png y el favicon no se enlaza.
+    icon: "/icon.png",
     apple: "/icons/apple-touch-icon.png",
   },
   appleWebApp: {

@@ -33,10 +33,17 @@ const PUBLIC_FILE_PREFIXES = [
 // nonced cargue a su vez, así que el host es solo respaldo para navegadores
 // que no soportan 'strict-dynamic'.
 function buildCsp(nonce: string): string {
+  const isDev = process.env.NODE_ENV !== "production";
   return [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.googletagmanager.com`,
-    `style-src 'self'`,
+    // 'unsafe-eval' solo en dev: el Fast Refresh de Next usa eval() para
+    // recompilar módulos; el build de producción no lo necesita.
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ""}`,
+    // 'unsafe-inline' solo en dev: el overlay de Next.js aplica estilos
+    // inline vía atributo style="", que un nonce no puede cubrir (los nonce
+    // solo protegen elementos <style>, no atributos). Sin 'unsafe-inline' no
+    // hay alternativa dev-only viable; en build de producción no aplica.
+    `style-src 'self'${isDev ? " 'unsafe-inline'" : ""}`,
     `img-src 'self' data:`,
     `font-src 'self'`,
     `connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com`,
@@ -47,7 +54,7 @@ function buildCsp(nonce: string): string {
     `worker-src 'self'`,
     `manifest-src 'self'`,
     // Evitada en dev: rompería el HMR de Next (websocket ws:// en localhost).
-    ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
+    ...(isDev ? [] : ["upgrade-insecure-requests"]),
   ].join("; ");
 }
 

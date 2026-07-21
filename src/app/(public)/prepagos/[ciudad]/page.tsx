@@ -94,6 +94,7 @@ export default async function PrepagosCiudadPage({
       <script
         type="application/ld+json"
         nonce={nonce}
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <section className="pt-4 sm:pt-6">
