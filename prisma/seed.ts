@@ -68,6 +68,65 @@ async function main() {
     });
   }
 
+  // ── Cuenta de agencia + trabajadora vinculada ────────────
+  const agencyUser = await db.user.upsert({
+    where: { email: "agencia@misescorts.com" },
+    update: {},
+    create: {
+      email: "agencia@misescorts.com",
+      passwordHash,
+      role: "AGENCY",
+      displayName: "Agencia Bogotá VIP",
+      birthDate,
+      ownedAgency: {
+        create: {
+          name: "Agencia Bogotá VIP",
+          city: "Bogotá",
+          description: "Agencia con catálogo de profesionales verificadas en Bogotá.",
+        },
+      },
+    },
+    include: { ownedAgency: true },
+  });
+  const agency = agencyUser.ownedAgency!;
+
+  await db.user.upsert({
+    where: { email: "camila@misescorts.com" },
+    update: {},
+    create: {
+      email: "camila@misescorts.com",
+      passwordHash,
+      role: "WORKER",
+      displayName: "Camila",
+      birthDate: new Date("1998-08-14"),
+      verifiedAt: new Date(),
+      agencyId: agency.id,
+      profile: {
+        create: {
+          bio: "Profesional de la Agencia Bogotá VIP. Atención cálida y puntual.",
+          countryCode: "CO",
+          countryName: "Colombia",
+          stateCode: "DC",
+          stateName: "Bogotá D.C.",
+          city: "Bogotá D.C.",
+          languages: "Español",
+          visible: true,
+        },
+      },
+      verification: {
+        create: {
+          fullName: "Camila Ejemplo Rojas",
+          docType: "CC",
+          docNumber: "1034567890",
+          docImagePath: "verifications/demo-doc-3.jpg",
+          selfiePath: "verifications/demo-selfie-3.jpg",
+          status: "APPROVED",
+          reviewedAt: new Date(),
+        },
+      },
+    },
+  });
+
   // ── Profesional verificada ───────────────────────────────
   const worker = await db.user.upsert({
     where: { email: "valentina@misescorts.com" },
@@ -191,6 +250,8 @@ async function main() {
   console.log("Cuentas de prueba (contraseña: password123):");
   console.log("  admin@misescorts.com      → Administración");
   console.log("  hotel@misescorts.com      → Panel de hotel aliado");
+  console.log("  agencia@misescorts.com    → Panel de agencia (con Camila en su catálogo)");
+  console.log("  camila@misescorts.com     → Profesional vinculada a la agencia");
   console.log("  valentina@misescorts.com  → Profesional verificada (premium)");
   console.log("  cliente@misescorts.com    → Cliente verificado");
 }

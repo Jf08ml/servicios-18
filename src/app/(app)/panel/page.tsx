@@ -102,6 +102,45 @@ export default async function PanelPage() {
     );
   }
 
+  if (user.role === "AGENCY") {
+    const agency = await db.agency.findUnique({ where: { ownerId: user.id } });
+    if (!agency) {
+      return (
+        <div className="space-y-6">
+          <h1 className={pageTitle}>Hola, {user.displayName}</h1>
+          <EmptyState
+            title="Tu cuenta aún no tiene una agencia asociada"
+            description="Escríbenos si esto tarda más de 24 horas."
+          />
+        </div>
+      );
+    }
+
+    const [workerCount, upcomingCount] = await Promise.all([
+      db.user.count({ where: { agencyId: agency.id } }),
+      db.appointment.count({
+        where: {
+          worker: { agencyId: agency.id },
+          status: { in: ["PENDING", "CONFIRMED"] },
+          startsAt: { gte: new Date() },
+        },
+      }),
+    ]);
+
+    return (
+      <div className="space-y-6">
+        <h1 className={pageTitle}>Hola, {agency.name}</h1>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <StatCard label="Profesionales en el catálogo" value={workerCount} href="/agencia" />
+          <StatCard label="Próximas citas del catálogo" value={upcomingCount} />
+        </div>
+        <Link href="/agencia" className="inline-block text-sm font-medium text-fuchsia-400 hover:text-fuchsia-300">
+          Ir a mi agencia →
+        </Link>
+      </div>
+    );
+  }
+
   // WORKER y CLIENT
   const now = new Date();
   const [verification, upcoming, unread, rating] = await Promise.all([

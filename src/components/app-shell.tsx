@@ -7,6 +7,7 @@ const ROLE_LABELS: Record<Role, string> = {
   WORKER: "Profesional",
   CLIENT: "Cliente",
   HOTEL: "Hotel aliado",
+  AGENCY: "Agencia",
   ADMIN: "Administración",
 };
 
@@ -39,6 +40,12 @@ function navFor(role: Role): NavItem[] {
       return [
         { href: "/panel", label: "Panel" },
         { href: "/hotel", label: "Mi hotel" },
+        { href: "/reportes", label: "Reportes" },
+      ];
+    case "AGENCY":
+      return [
+        { href: "/panel", label: "Panel" },
+        { href: "/agencia", label: "Mi agencia" },
         { href: "/reportes", label: "Reportes" },
       ];
     case "ADMIN":

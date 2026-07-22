@@ -7,17 +7,19 @@ import { input, label } from "@/lib/ui";
 
 export function RegisterForm() {
   const [state, formAction] = useActionState<AuthState, FormData>(registerAction, {});
-  const [role, setRole] = useState<"WORKER" | "CLIENT">("CLIENT");
+  const [role, setRole] = useState<"WORKER" | "CLIENT" | "AGENCY">("CLIENT");
+  const isAgency = role === "AGENCY";
 
   return (
     <form action={formAction} className="space-y-4">
       <div>
         <span className={label}>Quiero registrarme como</span>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {(
             [
               ["CLIENT", "Cliente", "Busco perfiles verificados"],
               ["WORKER", "Profesional", "Ofrezco servicios de forma independiente"],
+              ["AGENCY", "Agencia", "Gestiono el catálogo de varias profesionales"],
             ] as const
           ).map(([value, title, desc]) => (
             <label
@@ -45,12 +47,14 @@ export function RegisterForm() {
 
       <div>
         <label htmlFor="displayName" className={label}>
-          Nombre o alias público
+          {isAgency ? "Nombre de la agencia" : "Nombre o alias público"}
         </label>
         <input id="displayName" name="displayName" required maxLength={60} className={input} />
-        <p className="mt-1 text-xs text-zinc-500">
-          Puedes usar un alias para proteger tu privacidad.
-        </p>
+        {!isAgency && (
+          <p className="mt-1 text-xs text-zinc-500">
+            Puedes usar un alias para proteger tu privacidad.
+          </p>
+        )}
       </div>
 
       <div>

@@ -16,6 +16,7 @@ const PROTECTED_PREFIXES = [
   "/notificaciones",
   "/admin",
   "/hotel",
+  "/agencia",
   "/api/files",
   "/api/chat",
 ];
@@ -26,6 +27,7 @@ const PUBLIC_FILE_PREFIXES = [
   "/api/files/avatars/",
   "/api/files/hotels/",
   "/api/files/gallery/",
+  "/api/files/agencies/",
 ];
 
 // Analítica (GA4, src/components/analytics.tsx): script externo de gtag.js +

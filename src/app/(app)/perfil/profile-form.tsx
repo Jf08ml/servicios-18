@@ -19,6 +19,8 @@ export function ProfileForm({
   countries,
   initialStates,
   initialCities,
+  action = updateProfileAction,
+  workerId,
 }: {
   isWorker: boolean;
   defaults: {
@@ -32,11 +34,12 @@ export function ProfileForm({
   countries: GeoOption[];
   initialStates: GeoOption[];
   initialCities: GeoOption[];
+  /** Server Action a enlazar; por defecto edita el perfil de la sesión actual. */
+  action?: (prev: ProfileFormState, formData: FormData) => Promise<ProfileFormState>;
+  /** Si se usa desde el panel de una agencia, id de la trabajadora gestionada. */
+  workerId?: string;
 }) {
-  const [state, formAction] = useActionState<ProfileFormState, FormData>(
-    updateProfileAction,
-    {}
-  );
+  const [state, formAction] = useActionState<ProfileFormState, FormData>(action, {});
 
   const [country, setCountry] = useState(defaults.country);
   const [stateCode, setStateCode] = useState(defaults.state);
@@ -60,6 +63,7 @@ export function ProfileForm({
 
   return (
     <form action={formAction} className="space-y-4">
+      {workerId && <input type="hidden" name="workerId" value={workerId} />}
       <div>
         <label htmlFor="photo" className={label}>
           Foto de perfil

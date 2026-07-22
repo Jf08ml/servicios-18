@@ -14,7 +14,7 @@ import {
 export type AuthState = { error?: string };
 
 const registerSchema = z.object({
-  role: z.enum(["WORKER", "CLIENT"]),
+  role: z.enum(["WORKER", "CLIENT", "AGENCY"]),
   displayName: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres").max(60),
   email: z.string().trim().toLowerCase().email("Correo electrónico inválido"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(100),
@@ -64,9 +64,9 @@ export async function registerAction(
       displayName: data.displayName,
       birthDate: data.birthDate,
       phone: data.phone || null,
-      profile: {
-        create: { city: data.city || null },
-      },
+      ...(data.role === "AGENCY"
+        ? { ownedAgency: { create: { name: data.displayName, city: data.city || null } } }
+        : { profile: { create: { city: data.city || null } } }),
     },
   });
 

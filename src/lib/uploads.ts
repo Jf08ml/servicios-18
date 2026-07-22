@@ -26,7 +26,7 @@ export const CONTENT_TYPES: Record<string, string> = {
   ".webm": "video/webm",
 };
 
-export type UploadDir = "avatars" | "verifications" | "hotels" | "gallery";
+export type UploadDir = "avatars" | "verifications" | "hotels" | "gallery" | "agencies";
 
 async function persist(file: File, dir: UploadDir, ext: string): Promise<string> {
   const name = crypto.randomBytes(12).toString("hex") + ext;

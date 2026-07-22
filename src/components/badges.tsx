@@ -70,6 +70,17 @@ export function UnverifiedBadge() {
   );
 }
 
+export function AgencyBadge({ name }: { name: string }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full border border-sky-800 bg-sky-950/50 px-2.5 py-0.5 text-xs font-medium text-sky-300"
+      title={`Perfil gestionado junto con la agencia ${name}`}
+    >
+      🏢 {name}
+    </span>
+  );
+}
+
 export function PremiumBadge() {
   return (
     <span

@@ -14,14 +14,19 @@ type GalleryItem = { id: string; kind: "IMAGE" | "VIDEO"; filePath: string };
 export function GalleryManager({
   items,
   limit,
+  addAction = addGalleryMediaAction,
+  deleteAction = deleteGalleryMediaAction,
+  workerId,
 }: {
   items: GalleryItem[];
   limit: number;
+  /** Server Actions a enlazar; por defecto editan la galería de la sesión actual. */
+  addAction?: (prev: ProfileFormState, formData: FormData) => Promise<ProfileFormState>;
+  deleteAction?: (formData: FormData) => Promise<void> | void;
+  /** Si se usa desde el panel de una agencia, id de la trabajadora gestionada. */
+  workerId?: string;
 }) {
-  const [state, formAction] = useActionState<ProfileFormState, FormData>(
-    addGalleryMediaAction,
-    {}
-  );
+  const [state, formAction] = useActionState<ProfileFormState, FormData>(addAction, {});
 
   return (
     <div className="space-y-4">
@@ -46,8 +51,9 @@ export function GalleryManager({
                   className="aspect-square w-full rounded-xl border border-zinc-800 object-cover"
                 />
               )}
-              <form action={deleteGalleryMediaAction} className="absolute right-2 top-2">
+              <form action={deleteAction} className="absolute right-2 top-2">
                 <input type="hidden" name="id" value={m.id} />
+                {workerId && <input type="hidden" name="workerId" value={workerId} />}
                 <button
                   type="submit"
                   title="Eliminar de la galería"
@@ -63,6 +69,7 @@ export function GalleryManager({
 
       {items.length < limit ? (
         <form action={formAction} className="space-y-3">
+          {workerId && <input type="hidden" name="workerId" value={workerId} />}
           <div>
             <label htmlFor="media" className={label}>
               Agregar fotos o videos ({items.length}/{limit})

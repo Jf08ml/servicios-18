@@ -1,12 +1,9 @@
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { isPremium } from "@/lib/auth";
 import { formatLocation } from "@/lib/format";
-import { Avatar } from "@/components/avatar";
-import { Stars } from "@/components/stars";
-import { VerifiedBadge, PremiumBadge } from "@/components/badges";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { EmptyState } from "@/components/empty-state";
+import { WorkerCard } from "@/components/worker-card";
 
 export type CatalogFilterParams = {
   pais?: string;
@@ -43,6 +40,7 @@ export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }:
         profile: true,
         mediaItems: { orderBy: { createdAt: "asc" }, take: 4 },
         _count: { select: { mediaItems: true } },
+        agency: { select: { id: true, name: true } },
       },
     }),
     // Opciones de filtro: solo lo que existe entre los perfiles visibles.
@@ -128,103 +126,21 @@ export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }:
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((w) => {
             const rating = ratingMap.get(w.id);
-            const [cover, ...thumbs] = w.mediaItems;
-            const extra = w._count.mediaItems - w.mediaItems.length;
             return (
-              <Link
+              <WorkerCard
                 key={w.id}
-                href={`/perfiles/${w.id}`}
-                className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 transition hover:border-fuchsia-700"
-              >
-                {cover && (
-                  <div>
-                    <div className="relative">
-                      {cover.kind === "VIDEO" ? (
-                        <video
-                          src={`/api/files/${cover.filePath}`}
-                          muted
-                          preload="metadata"
-                          playsInline
-                          className="h-40 w-full bg-black object-cover"
-                        />
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={`/api/files/${cover.filePath}`}
-                          alt={`${w.displayName} — ${formatLocation(w.profile)}`}
-                          loading="lazy"
-                          className="h-40 w-full object-cover"
-                        />
-                      )}
-                      {cover.kind === "VIDEO" && (
-                        <span className="absolute inset-0 flex items-center justify-center">
-                          <span className="rounded-full bg-black/60 px-3 py-1.5 text-sm text-white">
-                            ▶ Video
-                          </span>
-                        </span>
-                      )}
-                    </div>
-                    {thumbs.length > 0 && (
-                      <div className="grid grid-cols-3 gap-px bg-zinc-800">
-                        {thumbs.map((m, i) => (
-                          <div key={m.id} className="relative">
-                            {m.kind === "VIDEO" ? (
-                              <video
-                                src={`/api/files/${m.filePath}`}
-                                muted
-                                preload="metadata"
-                                playsInline
-                                className="h-16 w-full bg-black object-cover"
-                              />
-                            ) : (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={`/api/files/${m.filePath}`}
-                                alt={`Foto de ${w.displayName}`}
-                                loading="lazy"
-                                className="h-16 w-full object-cover"
-                              />
-                            )}
-                            {m.kind === "VIDEO" && (
-                              <span className="absolute inset-0 flex items-center justify-center text-xs text-white">
-                                <span className="rounded-full bg-black/60 px-1.5 py-0.5">▶</span>
-                              </span>
-                            )}
-                            {i === thumbs.length - 1 && extra > 0 && (
-                              <span className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm font-semibold text-white">
-                                +{extra}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="p-5">
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      photoPath={w.profile?.photoPath}
-                      name={w.displayName}
-                      className="h-14 w-14 text-lg"
-                    />
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-white">{w.displayName}</p>
-                      <p className="truncate text-sm text-zinc-400">{formatLocation(w.profile)}</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <VerifiedBadge />
-                    {isPremium(w) && <PremiumBadge />}
-                  </div>
-                  <div className="mt-3">
-                    <Stars value={rating?._avg.score ?? null} count={rating?._count} />
-                  </div>
-                  {w.profile?.bio && (
-                    <p className="mt-3 line-clamp-2 text-sm text-zinc-400">{w.profile.bio}</p>
-                  )}
-                </div>
-              </Link>
+                worker={{
+                  id: w.id,
+                  displayName: w.displayName,
+                  premium: isPremium(w),
+                  profile: w.profile,
+                  mediaItems: w.mediaItems,
+                  mediaCount: w._count.mediaItems,
+                  agency: w.agency,
+                }}
+                location={formatLocation(w.profile)}
+                rating={{ avg: rating?._avg.score ?? null, count: rating?._count ?? 0 }}
+              />
             );
           })}
         </div>

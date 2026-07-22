@@ -1,21 +1,29 @@
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { listCountries, listStates, listCities } from "@/lib/geo";
+import { GALLERY_LIMIT } from "@/lib/gallery";
 import { card, pageTitle } from "@/lib/ui";
 import { Avatar } from "@/components/avatar";
 import { ProfileForm } from "./profile-form";
 import { GalleryManager } from "./gallery-manager";
-import { addEmergencyContactAction, deleteEmergencyContactAction } from "./actions";
+import {
+  addEmergencyContactAction,
+  deleteEmergencyContactAction,
+  leaveAgencyAction,
+} from "./actions";
 import { input, label, btnSecondary } from "@/lib/ui";
 
 export const metadata = { title: "Mi perfil" };
 
 export default async function PerfilPage() {
   const user = await requireUser();
-  const [profile, contacts, mediaItems] = await Promise.all([
+  const [profile, contacts, mediaItems, agency] = await Promise.all([
     db.profile.findUnique({ where: { userId: user.id } }),
     db.emergencyContact.findMany({ where: { userId: user.id }, orderBy: { name: "asc" } }),
     db.mediaItem.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } }),
+    user.agencyId
+      ? db.agency.findUnique({ where: { id: user.agencyId }, select: { name: true } })
+      : Promise.resolve(null),
   ]);
 
   return (
@@ -27,6 +35,20 @@ export default async function PerfilPage() {
           <p className="text-sm text-zinc-400">{user.email}</p>
         </div>
       </div>
+
+      {agency && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-fuchsia-800 bg-fuchsia-950/20 p-4">
+          <p className="text-sm text-fuchsia-100">
+            Tu perfil es gestionado junto con la agencia{" "}
+            <span className="font-semibold">{agency.name}</span>.
+          </p>
+          <form action={leaveAgencyAction}>
+            <button type="submit" className="text-sm font-medium text-red-400 hover:text-red-300">
+              Dejar la agencia
+            </button>
+          </form>
+        </div>
+      )}
 
       <div className={card}>
         <h2 className="mb-4 font-semibold text-white">
@@ -61,7 +83,7 @@ export default async function PerfilPage() {
           </p>
           <GalleryManager
             items={mediaItems.map((m) => ({ id: m.id, kind: m.kind, filePath: m.filePath }))}
-            limit={12}
+            limit={GALLERY_LIMIT}
           />
         </div>
       )}

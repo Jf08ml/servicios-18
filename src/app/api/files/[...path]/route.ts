@@ -5,7 +5,7 @@ import { readUpload } from "@/lib/uploads";
 
 // Directorios de media pública: se ven sin sesión porque la portada y los
 // perfiles del catálogo son públicos. Los nombres de archivo son aleatorios.
-const PUBLIC_DIRS = ["avatars/", "hotels/", "gallery/"];
+const PUBLIC_DIRS = ["avatars/", "hotels/", "gallery/", "agencies/"];
 
 export async function GET(
   req: Request,

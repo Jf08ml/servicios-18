@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { card, pageTitle, btnSecondary, btnPrimary } from "@/lib/ui";
 import { Avatar } from "@/components/avatar";
 import { Stars } from "@/components/stars";
-import { VerifiedBadge, PremiumBadge } from "@/components/badges";
+import { VerifiedBadge, PremiumBadge, AgencyBadge } from "@/components/badges";
 import {
   formatDate,
   formatDurationMinutes,
@@ -88,6 +88,7 @@ export default async function PerfilDetallePage({
         take: 5,
         include: { author: { select: { displayName: true } } },
       },
+      agency: { select: { id: true, name: true } },
     },
   });
 
@@ -173,6 +174,11 @@ export default async function PerfilDetallePage({
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {worker.verifiedAt && <VerifiedBadge />}
               {isPremium(worker) && <PremiumBadge />}
+              {worker.agency && (
+                <Link href={`/agencias/${worker.agency.id}`}>
+                  <AgencyBadge name={worker.agency.name} />
+                </Link>
+              )}
             </div>
           </div>
         </div>

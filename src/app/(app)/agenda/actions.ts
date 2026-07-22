@@ -6,71 +6,37 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatDateTime } from "@/lib/format";
 import { notify } from "@/lib/notifications";
+import { DEFAULT_DURATIONS } from "@/lib/services";
 import {
-  DEFAULT_DURATIONS,
-  MAX_SERVICE_TYPES,
-  SERVICE_DURATIONS,
-} from "@/lib/services";
+  addAvailabilitySlots,
+  deleteAvailabilitySlot,
+  addServiceType,
+  deleteServiceType,
+} from "@/lib/scheduling";
 
 export async function addAvailabilityAction(formData: FormData) {
   const user = await requireUser(["WORKER"]);
-  // El formulario permite elegir varios días a la vez (un input por día).
-  const weekdays = [...new Set(formData.getAll("weekday").map(Number))].filter(
-    (d) => Number.isInteger(d) && d >= 0 && d <= 6
-  );
-  const start = Number(formData.get("startMinute"));
-  const end = Number(formData.get("endMinute"));
-
-  if (weekdays.length === 0) return;
-  if (!Number.isInteger(start) || !Number.isInteger(end)) return;
-  if (start < 0 || end > 1440 || end <= start) return;
-
-  // No duplicar: se omiten los días donde el rango se solapa con uno existente.
-  const existing = await db.availabilitySlot.findMany({
-    where: { workerId: user.id, weekday: { in: weekdays } },
-    select: { weekday: true, startMinute: true, endMinute: true },
-  });
-  const rows = weekdays
-    .filter(
-      (d) =>
-        !existing.some(
-          (s) => s.weekday === d && s.startMinute < end && s.endMinute > start
-        )
-    )
-    .map((d) => ({ workerId: user.id, weekday: d, startMinute: start, endMinute: end }));
-
-  if (rows.length > 0) {
-    await db.availabilitySlot.createMany({ data: rows });
-  }
+  await addAvailabilitySlots(user.id, formData);
   revalidatePath("/agenda");
 }
 
 export async function deleteAvailabilityAction(formData: FormData) {
   const user = await requireUser(["WORKER"]);
   const id = String(formData.get("id") ?? "");
-  await db.availabilitySlot.deleteMany({ where: { id, workerId: user.id } });
+  await deleteAvailabilitySlot(user.id, id);
   revalidatePath("/agenda");
 }
 
 export async function addServiceTypeAction(formData: FormData) {
   const user = await requireUser(["WORKER"]);
-  const name = String(formData.get("name") ?? "").trim().slice(0, 40);
-  const duration = Number(formData.get("duration"));
-
-  if (!name || !SERVICE_DURATIONS.includes(duration)) return;
-  const count = await db.serviceType.count({ where: { workerId: user.id } });
-  if (count >= MAX_SERVICE_TYPES) return;
-
-  await db.serviceType.create({
-    data: { workerId: user.id, name, durationMinutes: duration },
-  });
+  await addServiceType(user.id, formData);
   revalidatePath("/agenda");
 }
 
 export async function deleteServiceTypeAction(formData: FormData) {
   const user = await requireUser(["WORKER"]);
   const id = String(formData.get("id") ?? "");
-  await db.serviceType.deleteMany({ where: { id, workerId: user.id } });
+  await deleteServiceType(user.id, id);
   revalidatePath("/agenda");
 }
 

@@ -10,5 +10,6 @@ export const ROLE_LABELS: Record<string, string> = {
   WORKER: "Profesional",
   CLIENT: "Cliente",
   HOTEL: "Hotel aliado",
+  AGENCY: "Agencia",
   ADMIN: "Administrador",
 };

@@ -45,7 +45,15 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
  * Alta rápida de disponibilidad semanal: se eligen varios días a la vez
  * (chips + atajos) y un rango horario en formato 12h con a. m./p. m.
  */
-export function AvailabilityForm() {
+export function AvailabilityForm({
+  action = addAvailabilityAction,
+  workerId,
+}: {
+  /** Server Action a enlazar; por defecto edita la disponibilidad de la sesión actual. */
+  action?: (formData: FormData) => Promise<void> | void;
+  /** Si se usa desde el panel de una agencia, id de la trabajadora gestionada. */
+  workerId?: string;
+} = {}) {
   const [days, setDays] = useState<number[]>([]);
   const [start, setStart] = useState(840); // 2:00 p. m.
   const [end, setEnd] = useState(1320); // 10:00 p. m.
@@ -61,7 +69,8 @@ export function AvailabilityForm() {
   }
 
   return (
-    <form action={addAvailabilityAction} className="mt-4 space-y-4">
+    <form action={action} className="mt-4 space-y-4">
+      {workerId && <input type="hidden" name="workerId" value={workerId} />}
       {days.map((d) => (
         <input key={d} type="hidden" name="weekday" value={d} />
       ))}
