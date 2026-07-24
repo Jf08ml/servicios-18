@@ -1,9 +1,10 @@
 # Producción (VPS + Dokploy). Variables: ver .env.production.example
 #
-# Primer despliegue / cambios de esquema:
-#   docker compose -f docker-compose.prod.yml --profile tools run --rm migrate
+# Primer despliegue / cambios de esquema (--build es obligatorio: si no,
+# "run" reutiliza una imagen vieja de "migrate" y no ve migraciones nuevas):
+#   docker compose -f docker-compose.prod.yml --profile tools run --build --rm migrate
 # Seed inicial (revisa prisma/seed.ts antes — crea cuentas de prueba):
-#   docker compose -f docker-compose.prod.yml --profile tools run --rm migrate npm run db:seed
+#   docker compose -f docker-compose.prod.yml --profile tools run --build --rm migrate npm run db:seed
 
 services:
   db:

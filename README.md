@@ -90,8 +90,14 @@ npm run db:migrate           # la aplica a tu BD local y la deja en prisma/migra
 
 # 3. En el VPS (SSH), cuando el deploy termine:
 cd /etc/dokploy/compose/*/code
-docker compose -f docker-compose.prod.yml --profile tools run --rm migrate
+docker compose -f docker-compose.prod.yml --profile tools run --build --rm migrate
 ```
+
+`--build` es obligatorio: el servicio `migrate` tiene su propio build (`target: deps`) separado
+del de `app`, y `docker compose run` sin `--build` reutiliza una imagen ya existente de un deploy
+anterior en vez de reconstruirla. Sin el flag, corre con el código viejo, no ve las migraciones
+nuevas y reporta "no pending" sin haber aplicado nada — mientras tanto `app` sí queda actualizado
+y termina consultando columnas/tablas que no existen todavía.
 
 ### Variables de entorno y dominios
 

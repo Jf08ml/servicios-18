@@ -80,7 +80,7 @@ En el VPS (Dokploy guarda el compose bajo `/etc/dokploy/compose/<servicio>/code`
 
 ```bash
 cd /etc/dokploy/compose/*/code   # ajusta si tienes varios servicios
-docker compose -f docker-compose.prod.yml --profile tools run --rm migrate
+docker compose -f docker-compose.prod.yml --profile tools run --build --rm migrate
 ```
 
 **Seed — ojo:** `prisma/seed.ts` crea cuentas de prueba con contraseña
@@ -88,7 +88,7 @@ docker compose -f docker-compose.prod.yml --profile tools run --rm migrate
 contraseña fuerte) o cambia las contraseñas apenas entres:
 
 ```bash
-docker compose -f docker-compose.prod.yml --profile tools run --rm migrate npm run db:seed
+docker compose -f docker-compose.prod.yml --profile tools run --build --rm migrate npm run db:seed
 ```
 
 Los cambios de esquema futuros son el mismo comando `migrate`: aplica las
