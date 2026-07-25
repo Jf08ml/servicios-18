@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "./db";
-import { MAX_SERVICE_TYPES, SERVICE_DURATIONS } from "./services";
+import { DEFAULT_SERVICE_TYPES, MAX_SERVICE_TYPES, SERVICE_DURATIONS } from "./services";
 
 /**
  * Núcleo de disponibilidad y tipos de servicio, sin autorización propia: lo
@@ -57,4 +57,11 @@ export async function addServiceType(workerId: string, formData: FormData): Prom
 
 export async function deleteServiceType(workerId: string, id: string): Promise<void> {
   await db.serviceType.deleteMany({ where: { id, workerId } });
+}
+
+/** Precarga los tipos de servicio por defecto para una profesional recién creada. */
+export async function seedDefaultServiceTypes(workerId: string): Promise<void> {
+  await db.serviceType.createMany({
+    data: DEFAULT_SERVICE_TYPES.map((s) => ({ workerId, ...s })),
+  });
 }

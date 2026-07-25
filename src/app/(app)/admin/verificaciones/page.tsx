@@ -89,7 +89,7 @@ export default async function AdminVerificacionesPage() {
               </a>
             </div>
 
-            <form action={reviewVerificationAction} className="mt-4 space-y-3 border-t border-zinc-800 pt-4">
+            <form className="mt-4 space-y-3 border-t border-zinc-800 pt-4">
               <input type="hidden" name="id" value={v.id} />
               <div>
                 <label htmlFor={`notes-${v.id}`} className={label}>
@@ -100,16 +100,14 @@ export default async function AdminVerificacionesPage() {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  name="decision"
-                  value="approve"
+                  formAction={reviewVerificationAction.bind(null, "approve")}
                   className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
                 >
                   ✓ Aprobar
                 </button>
                 <button
                   type="submit"
-                  name="decision"
-                  value="reject"
+                  formAction={reviewVerificationAction.bind(null, "reject")}
                   className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
                 >
                   ✗ Rechazar

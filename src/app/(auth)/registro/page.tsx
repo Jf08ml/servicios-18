@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { listCountries, listStates } from "@/lib/geo";
 import { RegisterForm } from "./register-form";
 
 export const metadata = { title: "Crear cuenta" };
@@ -12,7 +13,7 @@ export default function RegistroPage() {
         años. Sin correos ni notificaciones: tu privacidad es primero.
       </p>
       <div className="mt-6">
-        <RegisterForm />
+        <RegisterForm countries={listCountries()} initialStates={listStates("CO")} />
       </div>
       <p className="mt-6 text-center text-sm text-zinc-400">
         ¿Ya tienes cuenta?{" "}

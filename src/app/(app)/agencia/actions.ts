@@ -12,6 +12,7 @@ import {
   deleteAvailabilitySlot,
   addServiceType,
   deleteServiceType,
+  seedDefaultServiceTypes,
 } from "@/lib/scheduling";
 
 export type AgencyFormState = { error?: string; ok?: boolean };
@@ -112,7 +113,7 @@ export async function createAgencyWorkerAction(
     return { error: "Ya existe una cuenta con este correo" };
   }
 
-  await db.user.create({
+  const worker = await db.user.create({
     data: {
       email: data.email,
       passwordHash: await hashPassword(data.password),
@@ -124,6 +125,7 @@ export async function createAgencyWorkerAction(
       profile: { create: { city: data.city || null } },
     },
   });
+  await seedDefaultServiceTypes(worker.id);
 
   revalidatePath("/agencia");
   revalidatePath("/panel");

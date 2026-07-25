@@ -9,6 +9,7 @@ import {
   setPremiumAction,
   requireFullVerificationAction,
 } from "../actions";
+import { DeleteUserButton } from "./delete-user-button";
 
 export const metadata = { title: "Usuarios" };
 
@@ -110,6 +111,7 @@ export default async function AdminUsuariosPage() {
                           </button>
                         </form>
                       )}
+                      <DeleteUserButton id={u.id} email={u.email} />
                     </div>
                   )}
                 </td>

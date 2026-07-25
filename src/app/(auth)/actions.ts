@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { resolveGeo } from "@/lib/geo";
+import { seedDefaultServiceTypes } from "@/lib/scheduling";
 import {
   createSession,
   destroySession,
@@ -20,7 +22,6 @@ const registerSchema = z.object({
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(100),
   birthDate: z.coerce.date({ errorMap: () => ({ message: "Fecha de nacimiento inválida" }) }),
   phone: z.string().trim().max(20).optional().or(z.literal("")),
-  city: z.string().trim().max(60).optional().or(z.literal("")),
 });
 
 export async function registerAction(
@@ -34,7 +35,6 @@ export async function registerAction(
     password: formData.get("password"),
     birthDate: formData.get("birthDate"),
     phone: formData.get("phone"),
-    city: formData.get("city"),
   });
   if (!parsed.success) {
     return { error: parsed.error.errors[0].message };
@@ -50,6 +50,16 @@ export async function registerAction(
   if (!isAdult(data.birthDate)) {
     return { error: "Debes ser mayor de 18 años para usar la plataforma" };
   }
+  if (data.role !== "CLIENT" && !data.phone) {
+    return { error: "El teléfono es obligatorio para profesionales y agencias" };
+  }
+
+  const geoResult = resolveGeo(
+    String(formData.get("country") ?? "").trim(),
+    String(formData.get("state") ?? "").trim(),
+    String(formData.get("city") ?? "").trim().slice(0, 80)
+  );
+  if ("error" in geoResult) return { error: geoResult.error };
 
   const existing = await db.user.findUnique({ where: { email: data.email } });
   if (existing) {
@@ -65,10 +75,14 @@ export async function registerAction(
       birthDate: data.birthDate,
       phone: data.phone || null,
       ...(data.role === "AGENCY"
-        ? { ownedAgency: { create: { name: data.displayName, city: data.city || null } } }
-        : { profile: { create: { city: data.city || null } } }),
+        ? { ownedAgency: { create: { name: data.displayName, city: geoResult.city } } }
+        : { profile: { create: { ...geoResult } } }),
     },
   });
+
+  if (data.role === "WORKER") {
+    await seedDefaultServiceTypes(user.id);
+  }
 
   await createSession(user.id);
   redirect("/panel");

@@ -5,21 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { saveWorkerProfile, type ProfileFormState } from "@/lib/profile";
 import { addGalleryMedia, deleteGalleryMedia } from "@/lib/gallery";
-import { listStates, listCities, type GeoOption } from "@/lib/geo";
 
 export type { ProfileFormState };
-
-/** Opciones en cascada para los selects de ubicación del formulario. */
-export async function getStatesAction(countryCode: string): Promise<GeoOption[]> {
-  return listStates(countryCode);
-}
-
-export async function getCitiesAction(
-  countryCode: string,
-  stateCode: string
-): Promise<GeoOption[]> {
-  return listCities(countryCode, stateCode);
-}
 
 export async function updateProfileAction(
   _prev: ProfileFormState,

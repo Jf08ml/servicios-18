@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { SearchableSelect } from "@/components/searchable-select";
+import { findNearestCityAction } from "@/lib/geo-actions";
 
 type GeoOption = { code: string; name: string };
 
@@ -24,15 +25,20 @@ export function CatalogFilters({
   cities,
   selected,
   geoPairs,
+  highlightLocate = false,
 }: {
   countries: GeoOption[];
   states: GeoOption[];
   cities: GeoOption[];
   selected: { pais: string; depto: string; ciudad: string };
   geoPairs: { country: string; city: string | null }[];
+  /** Resalta el botón "cerca de mí" para clientes con sesión iniciada. */
+  highlightLocate?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [locating, setLocating] = useState(false);
+  const [locateError, setLocateError] = useState(false);
 
   function apply(pais: string, depto: string, ciudad: string) {
     const params = new URLSearchParams();
@@ -48,6 +54,34 @@ export function CatalogFilters({
       sessionStorage.setItem(AUTO_FLAG, "1");
     } catch {}
     apply(pais, depto, ciudad);
+  }
+
+  function locateMe() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocateError(true);
+      return;
+    }
+    setLocating(true);
+    setLocateError(false);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const nearest = await findNearestCityAction(
+          pos.coords.latitude,
+          pos.coords.longitude
+        );
+        setLocating(false);
+        if (nearest) {
+          onChange(nearest.countryCode, nearest.stateCode, nearest.city);
+        } else {
+          setLocateError(true);
+        }
+      },
+      () => {
+        setLocating(false);
+        setLocateError(true);
+      },
+      { timeout: 8000 }
+    );
   }
 
   // Autodetección: zona horaria → país (y ciudad si coincide con la de la TZ).
@@ -92,30 +126,49 @@ export function CatalogFilters({
   }, []);
 
   return (
-    <div className="grid max-w-3xl gap-2 sm:grid-cols-3">
-      <SearchableSelect
-        options={countries}
-        value={selected.pais}
-        onChange={(pais) => onChange(pais, "", "")}
-        placeholder="🌎 Todos los países"
-        emptyLabel="🌎 Todos los países"
-      />
-      <SearchableSelect
-        options={states}
-        value={selected.depto}
-        onChange={(depto) => onChange(selected.pais, depto, "")}
-        placeholder="Todos los departamentos"
-        emptyLabel="Todos los departamentos"
-        disabled={!selected.pais}
-      />
-      <SearchableSelect
-        options={cities}
-        value={selected.ciudad}
-        onChange={(ciudad) => onChange(selected.pais, selected.depto, ciudad)}
-        placeholder="Todas las ciudades"
-        emptyLabel="Todas las ciudades"
-        disabled={!selected.pais}
-      />
+    <div className="space-y-2">
+      {highlightLocate && !selected.ciudad && (
+        <div>
+          <button
+            type="button"
+            onClick={locateMe}
+            disabled={locating}
+            className="inline-flex items-center gap-2 rounded-xl border border-fuchsia-700 bg-fuchsia-950/40 px-4 py-2.5 text-sm font-medium text-fuchsia-200 transition hover:bg-fuchsia-950/70 disabled:opacity-60"
+          >
+            📍 {locating ? "Buscando tu ciudad…" : "Ver profesionales cerca de mí"}
+          </button>
+          {locateError && (
+            <p className="mt-1 text-xs text-zinc-500">
+              No pudimos detectar tu ciudad. Prueba con los filtros de abajo.
+            </p>
+          )}
+        </div>
+      )}
+      <div className="grid max-w-3xl gap-2 sm:grid-cols-3">
+        <SearchableSelect
+          options={countries}
+          value={selected.pais}
+          onChange={(pais) => onChange(pais, "", "")}
+          placeholder="🌎 Todos los países"
+          emptyLabel="🌎 Todos los países"
+        />
+        <SearchableSelect
+          options={states}
+          value={selected.depto}
+          onChange={(depto) => onChange(selected.pais, depto, "")}
+          placeholder="Todos los departamentos"
+          emptyLabel="Todos los departamentos"
+          disabled={!selected.pais}
+        />
+        <SearchableSelect
+          options={cities}
+          value={selected.ciudad}
+          onChange={(ciudad) => onChange(selected.pais, selected.depto, ciudad)}
+          placeholder="Todas las ciudades"
+          emptyLabel="Todas las ciudades"
+          disabled={!selected.pais}
+        />
+      </div>
     </div>
   );
 }

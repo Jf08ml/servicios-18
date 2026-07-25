@@ -1,12 +1,8 @@
 "use client";
 
 import { useState, useActionState } from "react";
-import {
-  updateProfileAction,
-  getStatesAction,
-  getCitiesAction,
-  type ProfileFormState,
-} from "./actions";
+import { updateProfileAction, type ProfileFormState } from "./actions";
+import { getStatesAction, getCitiesAction } from "@/lib/geo-actions";
 import { SubmitButton } from "@/components/submit-button";
 import { SearchableSelect } from "@/components/searchable-select";
 import { input, label } from "@/lib/ui";

@@ -5,7 +5,13 @@ import { usePathname } from "next/navigation";
 import { Logo } from "./logo";
 import { logoutAction } from "@/app/(auth)/actions";
 
-export type NavItem = { href: string; label: string };
+export type NavItem = {
+  href: string;
+  label: string;
+  icon?: string;
+  /** Le da un tratamiento visual destacado (pill fucsia sólida) dentro del nav. */
+  featured?: boolean;
+};
 
 export function AppNav({
   items,
@@ -63,11 +69,16 @@ export function AppNav({
                 <Link
                   href={item.href}
                   className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                    active
-                      ? "bg-fuchsia-600/20 text-fuchsia-300"
-                      : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                    item.featured
+                      ? active
+                        ? "bg-fuchsia-500 text-white shadow shadow-fuchsia-950/50"
+                        : "bg-fuchsia-600 text-white shadow shadow-fuchsia-950/50 hover:bg-fuchsia-500"
+                      : active
+                        ? "bg-fuchsia-600/20 text-fuchsia-300"
+                        : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
                   }`}
                 >
+                  {item.icon && <span className="mr-1">{item.icon}</span>}
                   {item.label}
                 </Link>
               </li>

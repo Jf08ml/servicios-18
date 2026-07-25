@@ -27,7 +27,7 @@ function navFor(role: Role): NavItem[] {
     case "CLIENT":
       return [
         { href: "/panel", label: "Panel" },
-        { href: "/perfiles", label: "Perfiles" },
+        { href: "/perfiles", label: "Explorar", icon: "🔍", featured: true },
         { href: "/agenda", label: "Mis citas" },
         { href: "/chat", label: "Chat" },
         { href: "/hoteles", label: "Hoteles" },

@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "./db";
 import { saveImage } from "./uploads";
-import { countryName, stateName, cityExists } from "./geo";
+import { resolveGeo } from "./geo";
 
 export type ProfileFormState = { error?: string; ok?: boolean };
 
@@ -25,32 +25,9 @@ export async function saveWorkerProfile(
   const sCode = String(formData.get("state") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim().slice(0, 80);
 
-  const geo: {
-    countryCode: string | null;
-    countryName: string | null;
-    stateCode: string | null;
-    stateName: string | null;
-    city: string | null;
-  } = { countryCode: null, countryName: null, stateCode: null, stateName: null, city: null };
-
-  if (cCode) {
-    const cName = countryName(cCode);
-    if (!cName) return { error: "País inválido" };
-    geo.countryCode = cCode;
-    geo.countryName = cName;
-
-    if (sCode) {
-      const sName = stateName(cCode, sCode);
-      if (!sName) return { error: "Departamento inválido" };
-      geo.stateCode = sCode;
-      geo.stateName = sName;
-
-      if (city) {
-        if (!cityExists(cCode, sCode, city)) return { error: "Ciudad inválida" };
-        geo.city = city;
-      }
-    }
-  }
+  const geoResult = resolveGeo(cCode, sCode, city);
+  if ("error" in geoResult) return { error: geoResult.error };
+  const geo = geoResult;
 
   let photoPath: string | undefined;
   if (photo instanceof File && photo.size > 0) {

@@ -14,9 +14,10 @@ export type WorkerCardData = {
 };
 
 /**
- * Tarjeta de trabajadora del catálogo público: portada + miniaturas, avatar,
- * badges, estrellas y bio. La usan tanto WorkerCatalog (portada/perfiles)
- * como la página pública de una agencia (/agencias/[id]).
+ * Tarjeta de trabajadora del catálogo público: la foto de portada es el
+ * elemento principal (nombre, ubicación y badges van superpuestos con un
+ * degradado), con estrellas y bio debajo. La usan tanto WorkerCatalog
+ * (portada/perfiles) como la página pública de una agencia (/agencias/[id]).
  */
 export function WorkerCard({
   worker,
@@ -27,24 +28,23 @@ export function WorkerCard({
   location: string;
   rating?: { avg: number | null; count: number };
 }) {
-  const [cover, ...thumbs] = worker.mediaItems;
-  const extra = worker.mediaCount - worker.mediaItems.length;
+  const [cover] = worker.mediaItems;
 
   return (
     <Link
       href={`/perfiles/${worker.id}`}
-      className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 transition hover:border-fuchsia-700"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 transition hover:-translate-y-0.5 hover:border-fuchsia-600 hover:shadow-lg hover:shadow-fuchsia-950/30"
     >
-      {cover && (
-        <div>
-          <div className="relative">
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-950">
+        {cover ? (
+          <>
             {cover.kind === "VIDEO" ? (
               <video
                 src={`/api/files/${cover.filePath}`}
                 muted
                 preload="metadata"
                 playsInline
-                className="h-40 w-full bg-black object-cover"
+                className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
@@ -52,7 +52,7 @@ export function WorkerCard({
                 src={`/api/files/${cover.filePath}`}
                 alt={`${worker.displayName} — ${location}`}
                 loading="lazy"
-                className="h-40 w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
               />
             )}
             {cover.kind === "VIDEO" && (
@@ -62,66 +62,39 @@ export function WorkerCard({
                 </span>
               </span>
             )}
+          </>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-zinc-800 to-zinc-950">
+            <Avatar
+              photoPath={worker.profile?.photoPath}
+              name={worker.displayName}
+              className="h-20 w-20 text-3xl"
+            />
           </div>
-          {thumbs.length > 0 && (
-            <div className="grid grid-cols-3 gap-px bg-zinc-800">
-              {thumbs.map((m, i) => (
-                <div key={m.id} className="relative">
-                  {m.kind === "VIDEO" ? (
-                    <video
-                      src={`/api/files/${m.filePath}`}
-                      muted
-                      preload="metadata"
-                      playsInline
-                      className="h-16 w-full bg-black object-cover"
-                    />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={`/api/files/${m.filePath}`}
-                      alt={`Foto de ${worker.displayName}`}
-                      loading="lazy"
-                      className="h-16 w-full object-cover"
-                    />
-                  )}
-                  {m.kind === "VIDEO" && (
-                    <span className="absolute inset-0 flex items-center justify-center text-xs text-white">
-                      <span className="rounded-full bg-black/60 px-1.5 py-0.5">▶</span>
-                    </span>
-                  )}
-                  {i === thumbs.length - 1 && extra > 0 && (
-                    <span className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm font-semibold text-white">
-                      +{extra}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-      <div className="p-5">
-        <div className="flex items-center gap-3">
-          <Avatar
-            photoPath={worker.profile?.photoPath}
-            name={worker.displayName}
-            className="h-14 w-14 text-lg"
-          />
-          <div className="min-w-0">
-            <p className="truncate font-semibold text-white">{worker.displayName}</p>
-            <p className="truncate text-sm text-zinc-400">{location}</p>
-          </div>
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        )}
+
+        <div className="absolute left-2 top-2 z-10 flex max-w-[85%] flex-wrap gap-1">
           <VerifiedBadge />
           {worker.premium && <PremiumBadge />}
           {worker.agency && <AgencyBadge name={worker.agency.name} />}
         </div>
-        <div className="mt-3">
-          <Stars value={rating?.avg ?? null} count={rating?.count} />
+
+        {worker.mediaCount > 1 && (
+          <span className="absolute right-2 top-2 z-10 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+            📷 {worker.mediaCount}
+          </span>
+        )}
+
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-3 pb-2 pt-10">
+          <p className="truncate font-semibold text-white">{worker.displayName}</p>
+          <p className="truncate text-xs text-zinc-200/90">📍 {location}</p>
         </div>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 p-3">
+        <Stars value={rating?.avg ?? null} count={rating?.count} />
         {worker.profile?.bio && (
-          <p className="mt-3 line-clamp-2 text-sm text-zinc-400">{worker.profile.bio}</p>
+          <p className="line-clamp-2 text-sm text-zinc-400">{worker.profile.bio}</p>
         )}
       </div>
     </Link>

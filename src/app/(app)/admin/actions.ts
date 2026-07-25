@@ -3,13 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { saveImage } from "@/lib/uploads";
+import { saveImage, deleteUpload } from "@/lib/uploads";
 import { notify } from "@/lib/notifications";
 
-export async function reviewVerificationAction(formData: FormData) {
+export async function reviewVerificationAction(decision: "approve" | "reject", formData: FormData) {
   const admin = await requireUser(["ADMIN"]);
   const id = String(formData.get("id") ?? "");
-  const decision = String(formData.get("decision") ?? "");
   const notes = String(formData.get("notes") ?? "").trim().slice(0, 500);
 
   const verification = await db.verification.findUnique({ where: { id } });
@@ -192,6 +191,64 @@ export async function setPremiumAction(formData: FormData) {
 
   revalidatePath("/admin/usuarios");
   revalidatePath("/perfiles");
+}
+
+/**
+ * Borra una cuenta y todos sus datos de forma permanente e irreversible.
+ * La mayoría de relaciones de User tienen onDelete: Cascade en el schema,
+ * pero Hotel.owner, Report.reported, Verification.reviewedBy y User.agency
+ * (agencia dueña) no la tienen porque son referencias a entidades que deben
+ * sobrevivir a la cuenta (el hotel, el reporte, la agencia) — hay que
+ * desvincularlas a mano antes del delete o Postgres rechaza la operación
+ * por la restricción de clave foránea.
+ */
+export async function deleteUserAction(formData: FormData) {
+  const admin = await requireUser(["ADMIN"]);
+  const id = String(formData.get("id") ?? "");
+  const confirmEmail = String(formData.get("confirmEmail") ?? "").trim().toLowerCase();
+
+  if (id === admin.id) return;
+
+  const target = await db.user.findUnique({
+    where: { id },
+    include: { profile: true, verification: true, mediaItems: true, ownedAgency: true },
+  });
+  if (!target || target.role === "ADMIN") return;
+  if (confirmEmail !== target.email.toLowerCase()) return;
+
+  const filesToDelete: string[] = [];
+  if (target.profile?.photoPath) filesToDelete.push(target.profile.photoPath);
+  if (target.verification?.docImagePath) filesToDelete.push(target.verification.docImagePath);
+  if (target.verification?.selfiePath) filesToDelete.push(target.verification.selfiePath);
+  if (target.ownedAgency?.photoPath) filesToDelete.push(target.ownedAgency.photoPath);
+  for (const media of target.mediaItems) filesToDelete.push(media.filePath);
+
+  await db.$transaction([
+    // Reportes donde era la persona reportada: se conservan para el historial
+    // de moderación, solo se desvincula al usuario borrado.
+    db.report.updateMany({ where: { reportedId: id }, data: { reportedId: null } }),
+    // Verificaciones ajenas que revisó (solo aplica si era ADMIN, cubierto igual).
+    db.verification.updateMany({ where: { reviewedById: id }, data: { reviewedById: null } }),
+    // Hotel propio: la entidad y sus reservas/tipos de cuarto siguen existiendo.
+    db.hotel.updateMany({ where: { ownerId: id }, data: { ownerId: null } }),
+    // Trabajadoras de su agencia (si era AGENCY): quedan sin agencia, no se borran.
+    ...(target.ownedAgency
+      ? [db.user.updateMany({ where: { agencyId: target.ownedAgency.id }, data: { agencyId: null } })]
+      : []),
+    // Reservas de hotel ligadas a una cita donde era worker o client: la cita
+    // se borra en cascada, la reserva (con otro titular) sobrevive sin cita.
+    db.hotelBooking.updateMany({
+      where: { appointment: { OR: [{ workerId: id }, { clientId: id }] } },
+      data: { appointmentId: null },
+    }),
+    db.user.delete({ where: { id } }),
+  ]);
+
+  for (const relativePath of filesToDelete) {
+    await deleteUpload(relativePath);
+  }
+
+  revalidatePath("/admin/usuarios");
 }
 
 export type HotelFormState = { error?: string; ok?: boolean };

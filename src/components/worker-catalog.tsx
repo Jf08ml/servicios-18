@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { isPremium } from "@/lib/auth";
+import { getCurrentUser, isPremium } from "@/lib/auth";
 import { formatLocation } from "@/lib/format";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { EmptyState } from "@/components/empty-state";
@@ -23,7 +23,8 @@ export const VISIBLE_WORKER_PROFILE = {
  * como en la sección /perfiles para usuarios con sesión.
  */
 export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }: CatalogFilterParams) {
-  const [workers, geoRows] = await Promise.all([
+  const [currentUser, workers, geoRows] = await Promise.all([
+    getCurrentUser(),
     db.user.findMany({
       where: {
         role: "WORKER",
@@ -110,6 +111,7 @@ export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }:
           cities={cities}
           selected={{ pais: pais ?? "", depto: depto ?? "", ciudad: ciudad ?? "" }}
           geoPairs={geoPairs}
+          highlightLocate={currentUser?.role === "CLIENT"}
         />
       )}
 
@@ -123,7 +125,7 @@ export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }:
           }
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {sorted.map((w) => {
             const rating = ratingMap.get(w.id);
             return (
