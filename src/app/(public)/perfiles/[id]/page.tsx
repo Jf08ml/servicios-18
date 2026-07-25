@@ -42,7 +42,7 @@ export async function generateMetadata({
 
   const city = worker.profile?.city;
   const title = city
-    ? `${worker.displayName} — Prepago en ${city}`
+    ? `${worker.displayName} — Prepago y escort en ${city}`
     : `${worker.displayName} — Perfil verificado`;
   const bio = worker.profile?.bio?.replace(/\s+/g, " ").trim();
   const description = bio

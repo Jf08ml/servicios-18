@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { absUrl, SITE_NAME, slugify } from "@/lib/site";
+import { absUrl, SITE_NAME, slugify, synonymFor } from "@/lib/site";
 import { WorkerCatalog, VISIBLE_WORKER_PROFILE } from "@/components/worker-catalog";
 
 type GeoRow = {
@@ -44,11 +44,11 @@ export async function generateMetadata({
     .filter((part) => part && part !== geo.city)
     .join(", ");
   return {
-    title: `Escorts y prepagos en ${geo.city} — Perfiles verificados`,
-    description: `Escorts, prepagos, acompañantes y damas de compañía con identidad verificada en ${geo.city}${region ? ` (${region})` : ""}: fotos reales, reseñas y agenda. Explora gratis, sin registro.`,
+    title: `Prepagos y putas en ${geo.city} — Escorts verificadas`,
+    description: `Prepagos, putas, escorts, prostitutas, acompañantes y damas de compañía con identidad verificada en ${geo.city}${region ? ` (${region})` : ""}: fotos reales, reseñas y agenda. Explora gratis, sin registro.`,
     alternates: { canonical: `/prepagos/${ciudad}` },
     openGraph: {
-      title: `Escorts y prepagos en ${geo.city} — Perfiles verificados | ${SITE_NAME}`,
+      title: `Prepagos y putas en ${geo.city} — Escorts verificadas | ${SITE_NAME}`,
       url: absUrl(`/prepagos/${ciudad}`),
     },
   };
@@ -83,7 +83,7 @@ export default async function PrepagosCiudadPage({
       {
         "@type": "ListItem",
         position: 2,
-        name: `Escorts y prepagos en ${geo.city}`,
+        name: `Prepagos y putas en ${geo.city}`,
         item: absUrl(`/prepagos/${ciudad}`),
       },
     ],
@@ -102,13 +102,14 @@ export default async function PrepagosCiudadPage({
           <Link href="/" className="hover:text-zinc-300">
             Inicio
           </Link>{" "}
-          / <span className="text-zinc-400">Escorts y prepagos en {geo.city}</span>
+          / <span className="text-zinc-400">Prepagos y putas en {geo.city}</span>
         </nav>
         <h1 className="max-w-3xl text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          Escorts y prepagos en {geo.city}
+          Prepagos, putas y escorts en {geo.city}
         </h1>
         <p className="mt-3 max-w-2xl text-zinc-400">
-          Escorts, prepagos, acompañantes y damas de compañía en {geo.city}
+          Prepagos, putas, escorts, prostitutas, acompañantes y damas de
+          compañía en {geo.city}
           {geo.stateName && geo.stateName !== geo.city
             ? `, ${geo.stateName}`
             : ""}{" "}
@@ -128,16 +129,16 @@ export default async function PrepagosCiudadPage({
       {otherCities.length > 0 && (
         <section className="border-t border-zinc-800 pt-6">
           <h2 className="text-sm font-semibold text-zinc-300">
-            Prepagos en otras ciudades
+            Prepagos y putas en otras ciudades
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
-            {otherCities.map((city) => (
+            {otherCities.map((city, i) => (
               <li key={city}>
                 <Link
                   href={`/prepagos/${slugify(city)}`}
                   className="inline-block rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-sm text-zinc-300 transition hover:border-fuchsia-700 hover:text-white"
                 >
-                  Prepagos en {city}
+                  {synonymFor(i)} en {city}
                 </Link>
               </li>
             ))}

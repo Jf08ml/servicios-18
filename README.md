@@ -120,8 +120,15 @@ git revert <commit-malo> && git push   # el webhook despliega la reversión
 - **Backups**: nocturnos y cifrados a Backblaze B2 (`scripts/backup.sh` +
   cron; configuración en DEPLOY.md §7). Probar la restauración cada tanto.
 - **Certificados**: Traefik renueva Let's Encrypt automáticamente.
-- **BD de producción**: solo accesible desde la red interna de Docker del VPS
-  (sin puerto expuesto); para inspeccionarla, `docker exec` al contenedor `db`.
+- **BD de producción**: el servicio `db` publica `127.0.0.1:5432` en el VPS
+  (solo loopback, nunca en internet pública — ver `docker-compose.prod.yml`).
+  Para conectar un cliente local (psql, Prisma Studio, `npm run dev` contra
+  datos reales): túnel SSH `ssh -L 5433:localhost:5432 root@45.32.173.2 -N` y
+  usa `postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/servicios18`
+  (la contraseña está en el panel Dokploy → Environment). Alternativa sin
+  túnel: `docker exec` al contenedor `db`. **Nunca** corras `prisma migrate
+  dev` ni `db:seed` con el túnel activo — son operaciones pensadas para BD
+  local, no para producción con datos reales.
 
 ## Estructura
 

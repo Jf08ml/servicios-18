@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { absUrl, SITE_DESCRIPTION, SITE_NAME, slugify } from "@/lib/site";
+import { absUrl, SITE_DESCRIPTION, SITE_NAME, slugify, synonymFor } from "@/lib/site";
 import { WorkerCatalog, VISIBLE_WORKER_PROFILE } from "@/components/worker-catalog";
 
 export const metadata: Metadata = {
   title: {
-    absolute: `Escorts y prepagos en Colombia — Perfiles verificados | ${SITE_NAME}`,
+    absolute: `Prepagos, putas y escorts en Colombia — Perfiles verificados | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   // Las variantes con filtros (?pais=&ciudad=) canonicalizan a la portada.
@@ -54,13 +54,14 @@ export default async function HomePage({
           Solo perfiles con identidad verificada · Mayores de 18 años
         </p>
         <h1 className="mx-auto max-w-3xl text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          Escorts, prepagos y acompañantes con perfil verificado en Colombia
+          Prepagos, putas, escorts y acompañantes con perfil verificado en
+          Colombia
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-zinc-400">
-          Directorio de escorts, prepagos y damas de compañía con identidad
-          verificada por nuestro equipo: fotos reales, reseñas y agenda.
-          Explora libremente; para chatear o agendar solo necesitas una cuenta
-          gratuita.{" "}
+          Directorio de prepagos, putas, escorts, prostitutas y damas de
+          compañía con identidad verificada por nuestro equipo: fotos reales,
+          reseñas y agenda. Explora libremente; para chatear o agendar solo
+          necesitas una cuenta gratuita.{" "}
           <Link
             href="/como-funciona"
             className="font-medium text-fuchsia-400 hover:text-fuchsia-300"
@@ -75,16 +76,16 @@ export default async function HomePage({
       {cities.length > 0 && (
         <section className="border-t border-zinc-800 pt-6">
           <h2 className="text-sm font-semibold text-zinc-300">
-            Prepagos por ciudad
+            Prepagos y putas por ciudad
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
-            {cities.map((city) => (
+            {cities.map((city, i) => (
               <li key={city}>
                 <Link
                   href={`/prepagos/${slugify(city)}`}
                   className="inline-block rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-sm text-zinc-300 transition hover:border-fuchsia-700 hover:text-white"
                 >
-                  Prepagos en {city}
+                  {synonymFor(i)} en {city}
                 </Link>
               </li>
             ))}
