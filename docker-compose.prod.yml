@@ -14,7 +14,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD}
       POSTGRES_DB: servicios18
-    # Sin ports: solo accesible desde la red interna de Docker.
+    # Publicado solo en loopback del VPS (nunca en internet pública): permite
+    # un túnel SSH (`ssh -L 5433:localhost:5432 root@IP_DEL_VPS`) para conectar
+    # un cliente local a la BD de producción sin exponer el puerto al exterior.
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
