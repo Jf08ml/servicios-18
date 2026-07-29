@@ -17,6 +17,8 @@
     "bcryptjs": "^3.0.2",
     "countries-and-timezones": "^3.9.0",
     "country-state-city": "^3.2.1",
+    "csv-parse": "^7.0.1",
+    "jszip": "^3.10.1",
     "next": "^15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

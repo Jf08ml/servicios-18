@@ -8,6 +8,7 @@ const SECTIONS = [
   { href: "/admin/sos", label: "Alertas SOS" },
   { href: "/admin/usuarios", label: "Usuarios" },
   { href: "/admin/hoteles", label: "Hoteles" },
+  { href: "/admin/carga-masiva", label: "Carga masiva" },
 ];
 
 export default async function AdminLayout({

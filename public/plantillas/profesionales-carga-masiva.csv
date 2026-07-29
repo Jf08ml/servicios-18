@@ -1,0 +1,3 @@
+email,password,nombre,telefono,fecha_nacimiento,pais,departamento,ciudad,bio,idiomas,foto_archivo,visible
+ejemplo1@correo.com,Cambiar123,Nombre Ejemplo,3001234567,1995-05-20,CO,DC,Bogotá D.C.,Descripción breve del perfil,Español,foto1.jpg,SI
+ejemplo2@correo.com,Cambiar123,Otra Profesional,3009876543,1998-11-02,CO,ANT,Medellín,,Español e inglés,,SI
