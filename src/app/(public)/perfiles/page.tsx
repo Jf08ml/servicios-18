@@ -10,9 +10,9 @@ export const metadata = {
 export default async function PerfilesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ pais?: string; depto?: string; ciudad?: string }>;
+  searchParams: Promise<{ pais?: string; depto?: string; ciudad?: string; page?: string }>;
 }) {
-  const { pais, depto, ciudad } = await searchParams;
+  const { pais, depto, ciudad, page } = await searchParams;
 
   return (
     <div className="space-y-6">
@@ -23,7 +23,7 @@ export default async function PerfilesPage({
           identidad revisada por nuestro equipo.
         </p>
       </div>
-      <WorkerCatalog pais={pais} depto={depto} ciudad={ciudad} />
+      <WorkerCatalog pais={pais} depto={depto} ciudad={ciudad} page={page} />
     </div>
   );
 }

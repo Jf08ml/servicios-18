@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCurrentUser, isPremium } from "@/lib/auth";
 import { formatLocation } from "@/lib/format";
@@ -9,6 +10,7 @@ export type CatalogFilterParams = {
   pais?: string;
   depto?: string;
   ciudad?: string;
+  page?: string;
   /** false en landings por ciudad, donde el filtro viene fijo en la URL. */
   showFilters?: boolean;
 };
@@ -18,32 +20,64 @@ export const VISIBLE_WORKER_PROFILE = {
   user: { is: { role: "WORKER" as const, status: "ACTIVE" as const, verifiedAt: { not: null } } },
 };
 
+const PAGE_SIZE = 24;
+
+function pageHref(page: number, pais?: string, depto?: string, ciudad?: string) {
+  const qs = new URLSearchParams();
+  if (pais) qs.set("pais", pais);
+  if (depto) qs.set("depto", depto);
+  if (ciudad) qs.set("ciudad", ciudad);
+  if (page > 1) qs.set("page", String(page));
+  const s = qs.toString();
+  return s ? `?${s}` : "?";
+}
+
 /**
  * Catálogo de perfiles verificados. Se usa tanto en la portada pública
  * como en la sección /perfiles para usuarios con sesión.
  */
-export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }: CatalogFilterParams) {
-  const [currentUser, workers, geoRows] = await Promise.all([
+export async function WorkerCatalog({
+  pais,
+  depto,
+  ciudad,
+  page,
+  showFilters = true,
+}: CatalogFilterParams) {
+  const currentPage = Math.max(1, Math.floor(Number(page)) || 1);
+
+  const workerWhere = {
+    role: "WORKER" as const,
+    status: "ACTIVE" as const,
+    verifiedAt: { not: null },
+    profile: {
+      visible: true,
+      ...(pais ? { countryCode: pais } : {}),
+      ...(depto ? { stateCode: depto } : {}),
+      ...(ciudad ? { city: ciudad } : {}),
+    },
+  };
+
+  const [currentUser, workers, totalCount, geoRows] = await Promise.all([
     getCurrentUser(),
     db.user.findMany({
-      where: {
-        role: "WORKER",
-        status: "ACTIVE",
-        verifiedAt: { not: null },
-        profile: {
-          visible: true,
-          ...(pais ? { countryCode: pais } : {}),
-          ...(depto ? { stateCode: depto } : {}),
-          ...(ciudad ? { city: ciudad } : {}),
-        },
-      },
+      where: workerWhere,
       include: {
         profile: true,
         mediaItems: { orderBy: { createdAt: "asc" }, take: 4 },
         _count: { select: { mediaItems: true } },
         agency: { select: { id: true, name: true } },
       },
+      // Premium primero (nunca expirados por delante de los no-premium), luego
+      // por cantidad de reseñas — mismo criterio que antes se aplicaba en
+      // memoria, ahora en la BD para poder paginar sin romper el orden.
+      orderBy: [
+        { premiumUntil: { sort: "desc", nulls: "last" } },
+        { reviewsReceived: { _count: "desc" } },
+      ],
+      skip: (currentPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
     }),
+    db.user.count({ where: workerWhere }),
     // Opciones de filtro: solo lo que existe entre los perfiles visibles.
     db.profile.findMany({
       where: VISIBLE_WORKER_PROFILE,
@@ -94,13 +128,7 @@ export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }:
   });
   const ratingMap = new Map(ratings.map((r) => [r.targetId, r]));
 
-  const sorted = [...workers].sort((a, b) => {
-    const premiumDiff = Number(isPremium(b)) - Number(isPremium(a));
-    if (premiumDiff !== 0) return premiumDiff;
-    const countA = ratingMap.get(a.id)?._count ?? 0;
-    const countB = ratingMap.get(b.id)?._count ?? 0;
-    return countB - countA;
-  });
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
     <div className="space-y-6">
@@ -115,7 +143,7 @@ export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }:
         />
       )}
 
-      {sorted.length === 0 ? (
+      {workers.length === 0 ? (
         <EmptyState
           title="No hay perfiles disponibles"
           description={
@@ -125,27 +153,61 @@ export async function WorkerCatalog({ pais, depto, ciudad, showFilters = true }:
           }
         />
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {sorted.map((w) => {
-            const rating = ratingMap.get(w.id);
-            return (
-              <WorkerCard
-                key={w.id}
-                worker={{
-                  id: w.id,
-                  displayName: w.displayName,
-                  premium: isPremium(w),
-                  profile: w.profile,
-                  mediaItems: w.mediaItems,
-                  mediaCount: w._count.mediaItems,
-                  agency: w.agency,
-                }}
-                location={formatLocation(w.profile)}
-                rating={{ avg: rating?._avg.score ?? null, count: rating?._count ?? 0 }}
-              />
-            );
-          })}
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {workers.map((w) => {
+              const rating = ratingMap.get(w.id);
+              return (
+                <WorkerCard
+                  key={w.id}
+                  worker={{
+                    id: w.id,
+                    displayName: w.displayName,
+                    premium: isPremium(w),
+                    profile: w.profile,
+                    mediaItems: w.mediaItems,
+                    mediaCount: w._count.mediaItems,
+                    agency: w.agency,
+                  }}
+                  location={formatLocation(w.profile)}
+                  rating={{ avg: rating?._avg.score ?? null, count: rating?._count ?? 0 }}
+                />
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <nav aria-label="Paginación" className="flex items-center justify-center gap-3 pt-2">
+              {currentPage > 1 ? (
+                <Link
+                  href={pageHref(currentPage - 1, pais, depto, ciudad)}
+                  className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition hover:border-fuchsia-700 hover:text-white"
+                >
+                  ← Anterior
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-zinc-900 px-3 py-1.5 text-sm text-zinc-700">
+                  ← Anterior
+                </span>
+              )}
+              <span className="text-sm text-zinc-500">
+                Página {currentPage} de {totalPages}
+              </span>
+              {currentPage < totalPages ? (
+                <Link
+                  href={pageHref(currentPage + 1, pais, depto, ciudad)}
+                  className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition hover:border-fuchsia-700 hover:text-white"
+                >
+                  Siguiente →
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-zinc-900 px-3 py-1.5 text-sm text-zinc-700">
+                  Siguiente →
+                </span>
+              )}
+            </nav>
+          )}
+        </>
       )}
     </div>
   );

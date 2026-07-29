@@ -90,6 +90,10 @@ export function formatLocation(profile?: {
   return unique.slice(0, 2).join(", ") || "Sin ubicación";
 }
 
+export function whatsappHref(phone: string): string {
+  return `https://wa.me/${phone.replace(/[^0-9]/g, "")}`;
+}
+
 export function hhmmToMinutes(value: string): number | null {
   const match = /^(\d{1,2}):(\d{2})$/.exec(value);
   if (!match) return null;

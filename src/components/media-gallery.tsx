@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { PhotoLightbox } from "./photo-lightbox";
 
 type GalleryItem = { id: string; kind: "IMAGE" | "VIDEO"; filePath: string };
 
@@ -11,10 +12,13 @@ type GalleryItem = { id: string; kind: "IMAGE" | "VIDEO"; filePath: string };
 export function MediaGallery({
   items,
   ownerName,
+  phone,
 }: {
   items: GalleryItem[];
   /** Nombre del dueño de la galería, para el texto alt de las fotos. */
   ownerName?: string;
+  /** Si se pasa, el lightbox muestra un botón de contacto por WhatsApp. */
+  phone?: string | null;
 }) {
   const [current, setCurrent] = useState<number | null>(null);
 
@@ -24,21 +28,6 @@ export function MediaGallery({
     },
     [items.length]
   );
-
-  useEffect(() => {
-    if (current === null) return;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setCurrent(null);
-      if (e.key === "ArrowRight") step(1);
-      if (e.key === "ArrowLeft") step(-1);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [current, step]);
 
   const item = current === null ? null : items[current];
 
@@ -82,77 +71,17 @@ export function MediaGallery({
       </div>
 
       {item && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
-          onClick={() => setCurrent(null)}
-        >
-          <button
-            type="button"
-            onClick={() => setCurrent(null)}
-            aria-label="Cerrar"
-            className="absolute right-4 top-4 z-10 rounded-full bg-zinc-800/80 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-zinc-700"
-          >
-            ✕
-          </button>
-
-          {items.length > 1 && (
-            <>
-              <button
-                type="button"
-                aria-label="Anterior"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  step(-1);
-                }}
-                className="absolute left-2 z-10 rounded-full bg-zinc-800/80 px-3 py-2 text-lg text-white transition hover:bg-fuchsia-600 sm:left-4"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                aria-label="Siguiente"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  step(1);
-                }}
-                className="absolute right-2 z-10 rounded-full bg-zinc-800/80 px-3 py-2 text-lg text-white transition hover:bg-fuchsia-600 sm:right-4"
-              >
-                ›
-              </button>
-            </>
-          )}
-
-          <figure
-            className="flex max-h-full flex-col items-center gap-3"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {item.kind === "VIDEO" ? (
-              <video
-                key={item.id}
-                src={`/api/files/${item.filePath}`}
-                controls
-                autoPlay
-                playsInline
-                className="max-h-[82dvh] w-auto max-w-full rounded-xl"
-              />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={item.id}
-                src={`/api/files/${item.filePath}`}
-                alt={ownerName ? `Foto de ${ownerName}` : ""}
-                className="max-h-[82dvh] w-auto max-w-full rounded-xl"
-              />
-            )}
-            {items.length > 1 && (
-              <figcaption className="text-sm text-zinc-400">
-                {(current ?? 0) + 1} / {items.length}
-              </figcaption>
-            )}
-          </figure>
-        </div>
+        <PhotoLightbox
+          mediaKey={item.id}
+          src={`/api/files/${item.filePath}`}
+          alt={ownerName ? `Foto de ${ownerName}` : ""}
+          isVideo={item.kind === "VIDEO"}
+          phone={phone}
+          counter={items.length > 1 ? `${(current ?? 0) + 1} / ${items.length}` : undefined}
+          onClose={() => setCurrent(null)}
+          onPrev={items.length > 1 ? () => step(-1) : undefined}
+          onNext={items.length > 1 ? () => step(1) : undefined}
+        />
       )}
     </>
   );

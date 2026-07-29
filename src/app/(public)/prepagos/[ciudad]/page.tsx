@@ -56,10 +56,13 @@ export async function generateMetadata({
 
 export default async function PrepagosCiudadPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ ciudad: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { ciudad } = await params;
+  const { page } = await searchParams;
   const geo = await resolveCity(ciudad);
   if (!geo?.city) notFound();
   const nonce = (await headers()).get("x-nonce") ?? undefined;
@@ -123,6 +126,7 @@ export default async function PrepagosCiudadPage({
       <WorkerCatalog
         pais={geo.countryCode ?? undefined}
         ciudad={geo.city}
+        page={page}
         showFilters={false}
       />
 

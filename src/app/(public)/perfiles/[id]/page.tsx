@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { getCurrentUser, isPremium } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { card, pageTitle, btnSecondary, btnPrimary } from "@/lib/ui";
-import { Avatar } from "@/components/avatar";
+import { ProfileAvatarButton } from "@/components/profile-avatar-button";
 import { Stars } from "@/components/stars";
 import { VerifiedBadge, PremiumBadge, AgencyBadge } from "@/components/badges";
 import {
@@ -13,6 +13,7 @@ import {
   formatDurationMinutes,
   formatLocation,
   minutesTo12h,
+  whatsappHref,
   WEEKDAYS,
 } from "@/lib/format";
 import { startConversationAction } from "@/app/(app)/chat/actions";
@@ -167,7 +168,12 @@ export default async function PerfilDetallePage({
       )}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Avatar photoPath={worker.profile?.photoPath} name={worker.displayName} className="h-20 w-20 text-2xl" />
+          <ProfileAvatarButton
+            photoPath={worker.profile?.photoPath}
+            name={worker.displayName}
+            phone={user ? worker.phone : null}
+            className="h-20 w-20 text-2xl"
+          />
           <div>
             <h1 className={pageTitle}>{worker.displayName}</h1>
             <p className="text-sm text-zinc-400">{formatLocation(worker.profile)}</p>
@@ -229,6 +235,16 @@ export default async function PerfilDetallePage({
           >
             📅 Agendar cita
           </a>
+          {worker.phone && (
+            <a
+              href={whatsappHref(worker.phone)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-700 bg-emerald-950/40 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-900/50"
+            >
+              📱 {worker.phone}
+            </a>
+          )}
         </div>
       )}
 
@@ -270,6 +286,7 @@ export default async function PerfilDetallePage({
           <h2 className="mb-3 font-semibold text-white">Galería</h2>
           <MediaGallery
             ownerName={worker.displayName}
+            phone={user ? worker.phone : null}
             items={worker.mediaItems.map((m) => ({
               id: m.id,
               kind: m.kind,

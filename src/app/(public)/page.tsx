@@ -17,9 +17,9 @@ export const metadata: Metadata = {
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ pais?: string; depto?: string; ciudad?: string }>;
+  searchParams: Promise<{ pais?: string; depto?: string; ciudad?: string; page?: string }>;
 }) {
-  const { pais, depto, ciudad } = await searchParams;
+  const { pais, depto, ciudad, page } = await searchParams;
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   const cityRows = await db.profile.findMany({
@@ -71,7 +71,7 @@ export default async function HomePage({
         </p>
       </section>
 
-      <WorkerCatalog pais={pais} depto={depto} ciudad={ciudad} />
+      <WorkerCatalog pais={pais} depto={depto} ciudad={ciudad} page={page} />
 
       {cities.length > 0 && (
         <section className="border-t border-zinc-800 pt-6">
