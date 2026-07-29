@@ -16,7 +16,11 @@ export default function AdminCargaMasivaPage() {
           Crea varias cuentas de profesionales ya verificadas a partir de una plantilla CSV. Cada
           fila crea una cuenta con rol Profesional, visible en el catálogo público de inmediato —
           sin pasar por el flujo normal de verificación (documento + selfie), porque el equipo ya
-          la vetó por fuera de la plataforma.
+          la vetó por fuera de la plataforma. Si el teléfono de la fila ya pertenece a un
+          profesional existente, no se crea una cuenta duplicada: se actualizan sus datos (nombre,
+          bio, ubicación, visibilidad) y las fotos solo se reemplazan si la fila trae{" "}
+          <code>foto_url</code>/<code>foto_archivo</code> o <code>galeria_urls</code>; la
+          contraseña de la cuenta existente nunca se toca.
         </p>
         <ol className="list-decimal space-y-1 pl-5">
           <li>
@@ -31,8 +35,20 @@ export default function AdminCargaMasivaPage() {
             y complétala (una fila por profesional; borra las filas de ejemplo antes de subirla).
           </li>
           <li>
-            Si vas a cargar fotos de perfil, comprime las imágenes (JPG, PNG o WebP) en un .zip y
-            escribe el nombre exacto de cada archivo en la columna <code>foto_archivo</code>.
+            Para la foto de perfil hay dos opciones: comprime las imágenes (JPG, PNG o WebP) en un
+            .zip y escribe el nombre exacto de cada archivo en la columna{" "}
+            <code>foto_archivo</code>, o pega una URL directa a la imagen en la columna{" "}
+            <code>foto_url</code> (el servidor la descarga y la guarda como propia, no queda
+            enlazada al sitio de origen). Si llenas ambas, se usa <code>foto_archivo</code>.
+          </li>
+          <li>
+            Para fotos de galería (hasta 12 por perfil) usa la columna{" "}
+            <code>galeria_urls</code> con las URLs separadas por <code>|</code> (ej.{" "}
+            <code>https://.../1.jpg|https://.../2.jpg</code>) o como array JSON (ej.{" "}
+            <code>[&quot;https://.../1.jpg&quot;,&quot;https://.../2.jpg&quot;]</code>, el formato
+            que exportan algunos scrapers de listados). Igual que <code>foto_url</code>, cada
+            imagen se descarga y se guarda como propia; si hay más de 12 solo se toman las
+            primeras 12.
           </li>
           <li>Sube el CSV (y el ZIP si aplica) abajo.</li>
         </ol>
