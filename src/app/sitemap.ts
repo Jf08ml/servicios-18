@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
-import { absUrl, slugify } from "@/lib/site";
+import { absUrl, profileSlug, slugify } from "@/lib/site";
 
 // Sin esto Next lo prerenderiza en build y los perfiles nuevos no aparecerían.
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       visible: true,
       user: { is: { role: "WORKER", status: "ACTIVE", verifiedAt: { not: null } } },
     },
-    select: { userId: true, city: true, updatedAt: true },
+    select: { userId: true, city: true, updatedAt: true, user: { select: { displayName: true } } },
   });
 
   const statics: MetadataRoute.Sitemap = [
@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const profilePages: MetadataRoute.Sitemap = profiles.map((p) => ({
-    url: absUrl(`/perfiles/${p.userId}`),
+    url: absUrl(`/perfiles/${profileSlug(p.user.displayName, p.userId)}`),
     lastModified: p.updatedAt,
     changeFrequency: "weekly",
     priority: 0.8,

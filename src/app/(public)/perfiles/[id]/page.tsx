@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getCurrentUser, isPremium } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -18,7 +18,7 @@ import {
 } from "@/lib/format";
 import { startConversationAction } from "@/app/(app)/chat/actions";
 import { MediaGallery } from "@/components/media-gallery";
-import { absUrl, SITE_NAME, slugify } from "@/lib/site";
+import { absUrl, SITE_NAME, slugify, profileSlug, extractProfileId } from "@/lib/site";
 import { AgendarForm } from "./agendar-form";
 
 export async function generateMetadata({
@@ -26,7 +26,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { id: slugParam } = await params;
+  const id = extractProfileId(slugParam);
   const worker = await db.user.findFirst({
     where: {
       id,
@@ -51,15 +52,16 @@ export async function generateMetadata({
       ? `${bio.slice(0, 152)}…`
       : bio
     : `Perfil verificado de ${worker.displayName}${city ? ` en ${city}` : ""}: fotos reales, reseñas y agenda en ${SITE_NAME}.`;
+  const canonicalPath = `/perfiles/${profileSlug(worker.displayName, worker.id)}`;
 
   return {
     title,
     description,
-    alternates: { canonical: `/perfiles/${id}` },
+    alternates: { canonical: canonicalPath },
     openGraph: {
       title: `${title} · ${SITE_NAME}`,
       description,
-      url: absUrl(`/perfiles/${id}`),
+      url: absUrl(canonicalPath),
       type: "profile",
       ...(worker.profile?.photoPath
         ? { images: [{ url: absUrl(`/api/files/${worker.profile.photoPath}`) }] }
@@ -74,7 +76,8 @@ export default async function PerfilDetallePage({
   params: Promise<{ id: string }>;
 }) {
   const user = await getCurrentUser();
-  const { id } = await params;
+  const { id: slugParam } = await params;
+  const id = extractProfileId(slugParam);
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   const worker = await db.user.findFirst({
@@ -104,6 +107,13 @@ export default async function PerfilDetallePage({
     notFound();
   }
 
+  // Canonicaliza a "/perfiles/{nombre-slug}-{id}" — cubre tanto el id crudo
+  // (enlaces internos viejos) como un slug desactualizado si el nombre cambió.
+  const canonicalSlug = profileSlug(worker.displayName, worker.id);
+  if (slugParam !== canonicalSlug) {
+    permanentRedirect(`/perfiles/${canonicalSlug}`);
+  }
+
   const rating = await db.review.aggregate({
     where: { targetId: worker.id },
     _avg: { score: true },
@@ -117,13 +127,13 @@ export default async function PerfilDetallePage({
     byWeekday.set(slot.weekday, list);
   }
 
-  const registerCta = `/login?next=/perfiles/${worker.id}`;
+  const registerCta = `/login?next=/perfiles/${canonicalSlug}`;
 
   const jsonLd = publiclyVisible
     ? {
         "@context": "https://schema.org",
         "@type": "ProfilePage",
-        url: absUrl(`/perfiles/${worker.id}`),
+        url: absUrl(`/perfiles/${canonicalSlug}`),
         mainEntity: {
           "@type": "Person",
           name: worker.displayName,
@@ -173,7 +183,7 @@ export default async function PerfilDetallePage({
               "@type": "ListItem",
               position: 3,
               name: worker.displayName,
-              item: absUrl(`/perfiles/${worker.id}`),
+              item: absUrl(`/perfiles/${canonicalSlug}`),
             },
           ],
         }

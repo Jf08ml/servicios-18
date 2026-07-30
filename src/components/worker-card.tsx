@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Avatar } from "@/components/avatar";
 import { Stars } from "@/components/stars";
 import { VerifiedBadge, PremiumBadge, AgencyBadge } from "@/components/badges";
+import { profileSlug } from "@/lib/site";
 
 export type WorkerCardData = {
   id: string;
@@ -32,7 +33,7 @@ export function WorkerCard({
 
   return (
     <Link
-      href={`/perfiles/${worker.id}`}
+      href={`/perfiles/${profileSlug(worker.displayName, worker.id)}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 transition hover:-translate-y-0.5 hover:border-fuchsia-600 hover:shadow-lg hover:shadow-fuchsia-950/30"
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-950">

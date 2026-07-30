@@ -43,3 +43,19 @@ export function slugify(name: string): string {
 export function absUrl(path: string): string {
   return new URL(path, SITE_URL).toString();
 }
+
+/**
+ * Slug con keyword para URLs de perfil: "{nombre-slugificado}-{id}". El id
+ * (cuid, sin guiones) siempre va al final para poder extraerlo de vuelta con
+ * extractProfileId sin ambigüedad, incluso si el nombre cambia después.
+ */
+export function profileSlug(displayName: string, id: string): string {
+  const base = slugify(displayName);
+  return base ? `${base}-${id}` : id;
+}
+
+/** Inversa de profileSlug: recupera el id (cuid) desde el último "-" del slug. */
+export function extractProfileId(param: string): string {
+  const idx = param.lastIndexOf("-");
+  return idx === -1 ? param : param.slice(idx + 1);
+}
