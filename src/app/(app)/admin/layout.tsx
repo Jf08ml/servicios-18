@@ -7,6 +7,7 @@ const SECTIONS = [
   { href: "/admin/reportes", label: "Reportes" },
   { href: "/admin/sos", label: "Alertas SOS" },
   { href: "/admin/usuarios", label: "Usuarios" },
+  { href: "/admin/chats", label: "Chats" },
   { href: "/admin/hoteles", label: "Hoteles" },
   { href: "/admin/carga-masiva", label: "Carga masiva" },
 ];

@@ -18,6 +18,7 @@ export default async function AdminResumenPage() {
     totalWorkers,
     verifiedWorkers,
     monthBookings,
+    totalConversations,
   ] = await Promise.all([
     db.verification.count({ where: { status: "PENDING" } }),
     db.report.count({ where: { status: { in: ["OPEN", "REVIEWING"] } } }),
@@ -30,6 +31,7 @@ export default async function AdminResumenPage() {
       _count: true,
       _sum: { totalPrice: true, commissionAmount: true },
     }),
+    db.conversation.count(),
   ]);
 
   const stats = [
@@ -39,6 +41,7 @@ export default async function AdminResumenPage() {
     { label: "Usuarios totales", value: totalUsers, href: "/admin/usuarios" },
     { label: "Profesionales", value: `${verifiedWorkers}/${totalWorkers} verif.`, href: "/admin/usuarios" },
     { label: "Reservas del mes", value: monthBookings._count, href: "/admin/hoteles" },
+    { label: "Conversaciones", value: totalConversations, href: "/admin/chats" },
   ];
 
   return (
