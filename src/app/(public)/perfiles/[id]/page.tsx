@@ -18,7 +18,7 @@ import {
 } from "@/lib/format";
 import { startConversationAction } from "@/app/(app)/chat/actions";
 import { MediaGallery } from "@/components/media-gallery";
-import { absUrl, SITE_NAME } from "@/lib/site";
+import { absUrl, SITE_NAME, slugify } from "@/lib/site";
 import { AgendarForm } from "./agendar-form";
 
 export async function generateMetadata({
@@ -156,6 +156,29 @@ export default async function PerfilDetallePage({
       }
     : null;
 
+  const breadcrumbJsonLd =
+    publiclyVisible && worker.profile?.city
+      ? {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: SITE_NAME, item: absUrl("/") },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: `Prepagos y putas en ${worker.profile.city}`,
+              item: absUrl(`/prepagos/${slugify(worker.profile.city)}`),
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: worker.displayName,
+              item: absUrl(`/perfiles/${worker.id}`),
+            },
+          ],
+        }
+      : null;
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       {jsonLd && (
@@ -165,6 +188,29 @@ export default async function PerfilDetallePage({
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+      )}
+      {breadcrumbJsonLd && (
+        <script
+          type="application/ld+json"
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+      )}
+      {worker.profile?.city && (
+        <nav className="text-sm text-zinc-500">
+          <Link href="/" className="hover:text-zinc-300">
+            Inicio
+          </Link>{" "}
+          /{" "}
+          <Link
+            href={`/prepagos/${slugify(worker.profile.city)}`}
+            className="hover:text-zinc-300"
+          >
+            Prepagos en {worker.profile.city}
+          </Link>{" "}
+          / <span className="text-zinc-400">{worker.displayName}</span>
+        </nav>
       )}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
