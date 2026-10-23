@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 adult-services workers and their clients. The platform explicitly does **not** broker or sell the
 service itself; it provides identity verification, an internal chat, scheduling, hotel-room
 booking, reviews, and an SOS panic button. Roles: `WORKER` (professional), `CLIENT`, `HOTEL`,
-`ADMIN`.
+`AGENCY`, `ADMIN`.
 
 The codebase, UI copy, DB comments, and route segments are all in **Spanish** (`/perfil`, `/citas`,
 `/hoteles`, `/reportes`, `/verificacion`, `/panel`, etc.) — match that when adding routes, actions,
@@ -25,9 +25,9 @@ npm run dev
 npm run build && npm start
 ```
 
-There is no lint script and no automated test suite in this repo. `playwright` is a devDependency
-but it's only used by `scripts/scrape-leads.mjs` (a lead-prospecting scraper, see below), not for
-app tests.
+There is no lint script and no automated test suite in this repo; `npm run build` (which
+type-checks) is the only automated check. `playwright` is a devDependency but it's only used by
+the local, gitignored lead-prospecting scraper (see below), not for app tests.
 
 Env vars (see `.env.example`): `DATABASE_URL`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY` /
 `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` (Web Push, generate with
@@ -56,22 +56,29 @@ the process.
 
 ### Route groups (`src/app/`)
 
-- `(public)/` — portada (catalog), `/perfiles` directory + detail, `/prepagos/[ciudad]` (see SEO
-  below), `/como-funciona`, `/instalar`. No session required.
+- `(public)/` — portada (catalog), `/perfiles` directory + detail, `/agencias/[id]`,
+  `/prepagos/[ciudad]` (see SEO below), `/como-funciona`, `/instalar`. No session required.
 - `(auth)/` — login/registro.
 - `(app)/` — everything requiring a session: `panel`, `perfil`, `chat`, `agenda`, `citas`,
-  `hoteles`/`reservas`, `reportes`, `verificacion`, `notificaciones`, `admin/`, `hotel/`.
+  `hoteles`/`reservas`, `reportes`, `verificacion`, `notificaciones`, `admin/`, `hotel/`
+  (HOTEL role), `agencia/` (AGENCY role).
 - `api/files/[...path]/route.ts` — serves everything under `uploads/`.
 - `api/chat/[id]/messages/route.ts` — chat is **polling-based**, not websockets.
 
 Route protection is centralized in `src/middleware.ts`: a hardcoded `PROTECTED_PREFIXES` list
 gates on the presence of the `s18_session` cookie (redirects to `/login` for pages, 401 JSON for
-`/api/*`). `PUBLIC_FILE_PREFIXES` carves out `avatars/`, `hotels/`, `gallery/` under `/api/files`
+`/api/*`). `PUBLIC_FILE_PREFIXES` carves out `avatars/`, `hotels/`, `gallery/`, `agencies/` under `/api/files`
 so catalog/profile media loads without a session; everything else under `uploads/` is
 private-by-default and re-checked inside the route handler itself (e.g. verification documents are
 only readable by their owner or an admin — see `src/app/api/files/[...path]/route.ts`). When adding
 a new protected section, add its prefix to `PROTECTED_PREFIXES` — the middleware is the only gate,
 individual pages don't re-check session existence (they do re-check role via `requireUser`).
+
+The middleware also sets security headers on every response, including a nonce-based CSP
+(`'strict-dynamic'`, GA4 allowed). The nonce is passed to Server Components via the `x-nonce`
+request header; any inline `<script>` (e.g. JSON-LD in the portada/perfil/prepagos pages, the
+analytics loader) must read it with `(await headers()).get("x-nonce")` and set `nonce=` or the
+browser will block it.
 
 ### Auth (`src/lib/auth.ts`)
 
@@ -90,6 +97,11 @@ handles "is there a session at all".
 - `Profile` stores denormalized location (`countryCode`/`countryName`/`stateCode`/`stateName`/
   `city`) resolved through `src/lib/geo.ts` (wraps `country-state-city`), not free text — always
   validate against that library when writing location fields.
+- `Agency` (owned by an `AGENCY` user) groups workers via `User.agencyId`. It is purely
+  organizational (no commission, unlike `Hotel`): each linked worker keeps her own account,
+  verification, chat, appointments and reviews; the agency only co-manages the profile.
+  `agencia/actions.ts` scopes every mutation to workers whose `agencyId` matches the caller's
+  agency.
 - `Appointment` → optional 1:1 `HotelBooking` (with `commissionPct`/`commissionAmount`) → `Review`.
 - `Notification` + `PushSubscription` back the in-app bell and optional per-device Web Push.
 
@@ -100,11 +112,20 @@ example (geo validation, upload handling, gallery limits).
 
 ### Uploads (`src/lib/uploads.ts`)
 
-Files are saved to disk under `uploads/<avatars|verifications|hotels|gallery>/` with randomized
+Files are saved to disk under `uploads/<avatars|verifications|hotels|gallery|agencies>/` with randomized
 filenames (never trust/store original names), size-capped (8 MB images, 50 MB video) and
 type-checked by MIME. All reads/writes resolve and verify the path stays under the uploads root
 before touching the filesystem. `next.config.ts` raises the Server Actions body limit to 60 MB to
 allow gallery video uploads.
+
+### Admin bulk import (`src/lib/bulk-import.ts`, `admin/carga-masiva/`)
+
+`importWorkersFromCsv` creates up to 500 worker accounts from a CSV (`csv-parse`), with photos
+taken either from an optional ZIP (`jszip`, referenced by filename) or downloaded from external
+URLs (`galeria_urls` accepts a JSON array or `|`-separated list) and re-saved as our own uploads
+rather than hotlinked. Each row reuses the normal paths (`resolveGeo`, `saveImage`/`saveMedia`,
+`GALLERY_LIMIT`, `seedDefaultServiceTypes`) and reports a per-row result instead of failing the
+whole batch.
 
 ### Notifications & push (`src/lib/notifications.ts`, `src/lib/push.ts`)
 
@@ -113,6 +134,21 @@ Push message via VAPID (`sendPushToUser`, silently a no-op if VAPID env vars are
 subscriptions returning 404/410 are pruned automatically). **The product never sends email** —
 email is only a login identifier — so anything that needs to reach a user goes through this path,
 not a mailer.
+
+### WhatsApp outreach (`src/lib/whatsapp.ts`, `src/lib/whatsapp-outreach.ts`)
+
+Bulk-imported workers start with `User.claimedAt = null` (self-registration sets it). When a
+CLIENT sends a chat message to such a worker, `sendMessageAction` runs
+`inviteWorkerIfUnclaimed` in `after()`. It sends a WhatsApp message without a link through the
+external gateway `wa-baileys-backend` (separate repo, Baileys, called with a key scoped to
+`WA_CLIENT_ID`). Her reply comes back through the gateway to `api/whatsapp/webhook`
+(`X-WA-Agent-Secret` = `WA_WEBHOOK_SECRET`). A reply gets a one-time `/acceso/[token]` link
+(`LoginToken`, stored as SHA-256 hash, consumed on POST, not on GET). "NO" opts her out.
+Entering via the link sets `mustChangePassword`, and `requireUser` then redirects every app page
+to `/contrasena` (in `(auth)`, to avoid a loop with the `(app)` layout). State per worker lives in
+`WhatsappOutreach` (admin view: `/admin/whatsapp`). Everything is a no-op without the `WA_*` env
+vars. There are caps: `WA_DAILY_LIMIT` invites per 24 h, at most 2 invites per worker 7 days
+apart.
 
 ### SEO (`src/lib/site.ts`)
 
@@ -134,8 +170,9 @@ make the app installable; push opt-in is per-device (`notificaciones/push-toggle
 
 ## Scripts (not part of the app)
 
-`scripts/scrape-leads.mjs` (Playwright) and `scripts/extract-leads-BROWSER-CONSOLE.js` are lead-
-prospecting tools that scrape public listing sites for contact info to reach out to prospective
-workers — unrelated to the product itself. Their output (`scripts/out/`) and browser profile
-(`scripts/.browser-profile/`) contain personal data and are gitignored; never commit or upload
-their contents.
+`scripts/backup.sh` is the nightly VPS backup (Postgres dump + `uploads/`, encrypted with restic
+to Backblaze B2); installation is in `DEPLOY.md`.
+
+Lead-prospecting scrapers (e.g. `scripts/scrape-leads.mjs`, Playwright) may exist locally but are
+gitignored, along with their output (`scripts/out/`) and browser profile
+(`scripts/.browser-profile/`). These contain personal data; never commit or upload them.

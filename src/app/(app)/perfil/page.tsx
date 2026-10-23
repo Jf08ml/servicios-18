@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { listCountries, listStates, listCities } from "@/lib/geo";
@@ -33,6 +34,9 @@ export default async function PerfilPage() {
         <div>
           <h1 className={pageTitle}>{user.displayName}</h1>
           <p className="text-sm text-zinc-400">{user.email}</p>
+          <Link href="/contrasena" className="text-xs font-medium text-fuchsia-400 hover:text-fuchsia-300">
+            Cambiar contraseña
+          </Link>
         </div>
       </div>
 

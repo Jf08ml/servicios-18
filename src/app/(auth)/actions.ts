@@ -74,6 +74,7 @@ export async function registerAction(
       displayName: data.displayName,
       birthDate: data.birthDate,
       phone: data.phone || null,
+      claimedAt: new Date(),
       ...(data.role === "AGENCY"
         ? { ownedAgency: { create: { name: data.displayName, city: geoResult.city } } }
         : { profile: { create: { ...geoResult } } }),

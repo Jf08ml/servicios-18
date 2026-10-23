@@ -59,10 +59,16 @@ export const getCurrentUser = cache(async () => {
 
 export type SessionUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
 
-export async function requireUser(roles?: Role[]): Promise<SessionUser> {
+export async function requireUser(
+  roles?: Role[],
+  // Solo la página /contrasena: es a donde se redirige mientras
+  // mustChangePassword esté activo (acceso por enlace de WhatsApp).
+  opts?: { allowPendingPassword?: boolean }
+): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.status === "SUSPENDED") redirect("/suspendido");
+  if (user.mustChangePassword && !opts?.allowPendingPassword) redirect("/contrasena");
   if (roles && !roles.includes(user.role)) redirect("/panel");
   return user;
 }

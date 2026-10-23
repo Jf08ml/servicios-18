@@ -43,6 +43,13 @@ services:
       NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
       VAPID_SUBJECT: ${VAPID_SUBJECT}
+      # WhatsApp (wa-baileys-backend). Opcionales: sin ellas no se envía nada.
+      WA_API_URL: ${WA_API_URL:-}
+      WA_API_KEY: ${WA_API_KEY:-}
+      WA_CLIENT_ID: ${WA_CLIENT_ID:-}
+      WA_WEBHOOK_SECRET: ${WA_WEBHOOK_SECRET:-}
+      WA_DAILY_LIMIT: ${WA_DAILY_LIMIT:-20}
+      WA_DEFAULT_COUNTRY: ${WA_DEFAULT_COUNTRY:-CO}
     volumes:
       # Aquí viven avatares, verificaciones, hoteles y galería (src/lib/uploads.ts).
       - uploads:/app/uploads

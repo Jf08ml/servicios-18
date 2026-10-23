@@ -94,6 +94,11 @@ model User {
   premiumUntil DateTime?
   // El admin exige la verificación completa (documento + selfie) ante reportes.
   fullVerificationRequired Boolean @default(false)
+  // Cuándo la persona tomó control de su cuenta (registro propio o enlace de
+  // acceso). null = cuenta creada por el equipo (carga masiva) aún no reclamada.
+  claimedAt    DateTime?
+  // Obliga a crear una contraseña nueva antes de usar la app (acceso por enlace).
+  mustChangePassword Boolean @default(false)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -124,8 +129,53 @@ model User {
   agency                Agency?            @relation("AgencyWorkers", fields: [agencyId], references: [id])
   // Agencia propia, si esta cuenta tiene role AGENCY.
   ownedAgency           Agency?            @relation("AgencyOwner")
+  loginTokens           LoginToken[]
+  whatsappOutreach      WhatsappOutreach?
 
   @@index([agencyId])
+}
+
+// Enlace de acceso de un solo uso (/acceso/[token]). Solo se guarda el hash
+// SHA-256 del token; el token en claro viaja una única vez por WhatsApp.
+model LoginToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum WhatsappOutreachStatus {
+  INVITED   // se le escribió avisando que un cliente la contactó
+  LINK_SENT // respondió y se le envió el enlace de acceso
+  OPTED_OUT // pidió no recibir más mensajes
+  FAILED    // número inválido o sin WhatsApp: no se reintenta
+}
+
+// Aviso por WhatsApp a profesionales con cuenta no reclamada cuando un cliente
+// les escribe (src/lib/whatsapp-outreach.ts). Uno por profesional.
+model WhatsappOutreach {
+  id         String                 @id @default(cuid())
+  userId     String                 @unique
+  // Número tal como se envió: solo dígitos con indicativo, sin "+".
+  phone      String
+  status     WhatsappOutreachStatus
+  attempts   Int                    @default(0)
+  invitedAt  DateTime?
+  linkSentAt DateTime?
+  lastError  String?
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([phone])
+  @@index([invitedAt])
 }
 
 model Session {

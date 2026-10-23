@@ -2,8 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { inviteWorkerIfUnclaimed } from "@/lib/whatsapp-outreach";
 
 function pairIds(userA: string, userB: string): [string, string] {
   return userA < userB ? [userA, userB] : [userB, userA];
@@ -58,6 +60,17 @@ export async function sendMessageAction(
     where: { id: conversationId },
     data: { lastMessageAt: message.createdAt },
   });
+
+  // Si un cliente le escribe a una profesional que aún no reclamó su cuenta
+  // (carga masiva), se le avisa por WhatsApp sin demorar la respuesta del chat.
+  if (user.role === "CLIENT") {
+    const recipientId = conversation.aId === user.id ? conversation.bId : conversation.aId;
+    after(() =>
+      inviteWorkerIfUnclaimed(recipientId).catch((e) =>
+        console.error("[whatsapp] error al invitar profesional", e)
+      )
+    );
+  }
 
   revalidatePath("/chat");
   return {

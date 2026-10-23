@@ -17,6 +17,7 @@ const PROTECTED_PREFIXES = [
   "/admin",
   "/hotel",
   "/agencia",
+  "/contrasena",
   "/api/files",
   "/api/chat",
 ];

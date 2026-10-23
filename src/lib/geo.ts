@@ -33,6 +33,13 @@ export function listCities(countryCode: string, stateCode: string): GeoOption[] 
     .sort((a, b) => collator.compare(a.name, b.name));
 }
 
+/** Indicativo telefónico del país, solo dígitos ("CO" → "57"). */
+export function phoneCode(countryCode: string): string | null {
+  const raw = Country.getCountryByCode(countryCode)?.phonecode;
+  const digits = raw?.replace(/\D/g, "");
+  return digits || null;
+}
+
 export function countryName(code: string): string | null {
   return Country.getCountryByCode(code)?.name ?? null;
 }
