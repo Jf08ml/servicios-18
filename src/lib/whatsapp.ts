@@ -1,5 +1,6 @@
 import "server-only";
 import { phoneCode } from "./geo";
+import { cleanPhone } from "./format";
 
 /**
  * Cliente del gateway de WhatsApp propio (wa-baileys-backend). Igual que el
@@ -49,7 +50,7 @@ export async function sendWhatsapp(phone: string, message: string): Promise<What
  * null si no parece un número válido.
  */
 export function toWhatsappNumber(phone: string, countryCode?: string | null): string | null {
-  const raw = phone.trim();
+  const raw = cleanPhone(phone);
   let digits = raw.replace(/\D/g, "");
   if (!digits) return null;
 

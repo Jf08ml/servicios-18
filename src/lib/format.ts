@@ -90,8 +90,16 @@ export function formatLocation(profile?: {
   return unique.slice(0, 2).join(", ") || "Sin ubicación";
 }
 
+/**
+ * Quita el ".0" que agrega Excel cuando guarda un teléfono como número
+ * ("573216063514.0"): al dejar solo dígitos, ese 0 se pegaría al número.
+ */
+export function cleanPhone(phone: string): string {
+  return phone.trim().replace(/\.0+$/, "");
+}
+
 export function whatsappHref(phone: string): string {
-  return `https://wa.me/${phone.replace(/[^0-9]/g, "")}`;
+  return `https://wa.me/${cleanPhone(phone).replace(/[^0-9]/g, "")}`;
 }
 
 export function hhmmToMinutes(value: string): number | null {

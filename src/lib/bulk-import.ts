@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import { db } from "./db";
 import { hashPassword, isAdult } from "./auth";
 import { resolveGeo } from "./geo";
+import { cleanPhone } from "./format";
 import { saveImage, saveMedia, deleteUpload } from "./uploads";
 import { seedDefaultServiceTypes } from "./scheduling";
 import { GALLERY_LIMIT } from "./gallery";
@@ -176,7 +177,7 @@ export async function importWorkersFromCsv(
     try {
       const password = String(row.password ?? "");
       const displayName = String(row.nombre ?? "").trim().slice(0, 60);
-      const phone = String(row.telefono ?? "").trim().slice(0, 20);
+      const phone = cleanPhone(String(row.telefono ?? "")).slice(0, 20);
       const birthDateRaw = String(row.fecha_nacimiento ?? "").trim();
       const countryCode = String(row.pais ?? "").trim().toUpperCase();
       const stateCode = String(row.departamento ?? "").trim().toUpperCase();
