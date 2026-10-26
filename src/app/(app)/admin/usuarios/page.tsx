@@ -8,13 +8,29 @@ import {
   setUserStatusAction,
   setPremiumAction,
   requireFullVerificationAction,
+  impersonateUserAction,
 } from "../actions";
 import { DeleteUserButton } from "./delete-user-button";
 
 export const metadata = { title: "Usuarios" };
 
-export default async function AdminUsuariosPage() {
+export default async function AdminUsuariosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const q = (await searchParams).q?.trim().slice(0, 100) ?? "";
   const users = await db.user.findMany({
+    where: q
+      ? {
+          OR: [
+            { displayName: { contains: q, mode: "insensitive" } },
+            { email: { contains: q, mode: "insensitive" } },
+            { phone: { contains: q } },
+            { id: q },
+          ],
+        }
+      : undefined,
     orderBy: { createdAt: "desc" },
     take: 200,
   });
@@ -22,6 +38,19 @@ export default async function AdminUsuariosPage() {
   return (
     <div className="space-y-6">
       <h1 className={pageTitle}>Usuarios ({users.length})</h1>
+
+      <form className="flex max-w-xl gap-2">
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="Buscar por nombre, correo, teléfono o ID"
+          className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-fuchsia-700 focus:outline-none"
+        />
+        <button className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-800">
+          Buscar
+        </button>
+      </form>
 
       <div className="overflow-x-auto rounded-2xl border border-zinc-800">
         <table className="w-full min-w-[720px] text-sm">
@@ -53,6 +82,17 @@ export default async function AdminUsuariosPage() {
                 <td className="px-4 py-3">
                   {u.role !== "ADMIN" && (
                     <div className="flex flex-wrap gap-1.5">
+                      {u.status !== "BANNED" && (
+                        <form action={impersonateUserAction}>
+                          <input type="hidden" name="id" value={u.id} />
+                          <button
+                            className="rounded border border-zinc-600 px-2 py-1 text-xs text-zinc-200 hover:bg-zinc-800"
+                            title="Abre su cuenta por 2 horas para dar soporte; vuelves con el aviso superior"
+                          >
+                            Entrar como
+                          </button>
+                        </form>
+                      )}
                       {u.status !== "ACTIVE" && (
                         <form action={setUserStatusAction}>
                           <input type="hidden" name="id" value={u.id} />

@@ -102,7 +102,9 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  sessions              Session[]
+  sessions              Session[]          @relation("SessionUser")
+  // Sesiones que este admin abrió en cuentas ajenas ("Entrar como").
+  impersonations        Session[]          @relation("SessionImpersonator")
   profile               Profile?
   verification          Verification?
   reviewedVerifications Verification[]     @relation("VerificationReviewer")
@@ -184,8 +186,11 @@ model Session {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
+  // Admin que abrió esta sesión en nombre del usuario (soporte). null = sesión normal.
+  impersonatorId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User  @relation("SessionUser", fields: [userId], references: [id], onDelete: Cascade)
+  impersonator User? @relation("SessionImpersonator", fields: [impersonatorId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

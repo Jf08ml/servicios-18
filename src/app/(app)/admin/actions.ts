@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { requireUser, startImpersonation } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { saveImage, deleteUpload } from "@/lib/uploads";
 import { notify } from "@/lib/notifications";
@@ -345,4 +346,20 @@ export async function toggleHotelActiveAction(formData: FormData) {
   await db.hotel.update({ where: { id }, data: { active: !hotel.active } });
   revalidatePath("/admin/hoteles");
   revalidatePath("/hoteles");
+}
+
+/**
+ * "Entrar como": abre una sesión de soporte (2 h) en la cuenta de otro usuario.
+ * Nunca en cuentas ADMIN ni bloqueadas. Se vuelve con el banner superior.
+ */
+export async function impersonateUserAction(formData: FormData) {
+  const admin = await requireUser(["ADMIN"]);
+  const id = String(formData.get("id") ?? "");
+
+  const target = await db.user.findUnique({ where: { id } });
+  if (!target || target.role === "ADMIN" || target.status === "BANNED") return;
+
+  await startImpersonation(admin.id, target.id);
+  console.info(`[impersonation] admin=${admin.id} target=${target.id}`);
+  redirect("/panel");
 }

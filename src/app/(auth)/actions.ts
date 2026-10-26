@@ -10,6 +10,7 @@ import {
   destroySession,
   hashPassword,
   isAdult,
+  stopImpersonation,
   verifyPassword,
 } from "@/lib/auth";
 
@@ -114,6 +115,12 @@ export async function loginAction(
 }
 
 export async function logoutAction() {
+  // "Cerrar sesión" mientras el admin entra como alguien = volver a su cuenta.
+  if (await stopImpersonation()) redirect("/admin/usuarios");
   await destroySession();
   redirect("/");
+}
+
+export async function stopImpersonationAction() {
+  redirect((await stopImpersonation()) ? "/admin/usuarios" : "/login");
 }

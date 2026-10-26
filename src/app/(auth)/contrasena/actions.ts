@@ -3,7 +3,13 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { hashPassword, requireUser, SESSION_COOKIE, verifyPassword } from "@/lib/auth";
+import {
+  getImpersonator,
+  hashPassword,
+  requireUser,
+  SESSION_COOKIE,
+  verifyPassword,
+} from "@/lib/auth";
 
 export type PasswordState = { error?: string };
 
@@ -12,6 +18,9 @@ export async function changePasswordAction(
   formData: FormData
 ): Promise<PasswordState> {
   const user = await requireUser(undefined, { allowPendingPassword: true });
+  if (await getImpersonator()) {
+    return { error: "No puedes cambiar la contraseña mientras entras como otro usuario" };
+  }
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirmPassword") ?? "");
 

@@ -1,5 +1,6 @@
 import { AppNav, type NavItem } from "@/components/nav";
 import { SosButton } from "@/components/sos-button";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { unreadCount } from "@/lib/notifications";
 import type { Role } from "@prisma/client";
 
@@ -67,6 +68,7 @@ export async function AppShell({
 
   return (
     <div className="min-h-dvh">
+      <ImpersonationBanner />
       <AppNav
         items={navFor(user.role)}
         displayName={user.displayName}

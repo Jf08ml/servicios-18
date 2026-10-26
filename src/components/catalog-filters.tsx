@@ -30,7 +30,7 @@ export function CatalogFilters({
   countries: GeoOption[];
   states: GeoOption[];
   cities: GeoOption[];
-  selected: { pais: string; depto: string; ciudad: string };
+  selected: { pais: string; depto: string; ciudad: string; q: string };
   geoPairs: { country: string; city: string | null }[];
   /** Resalta el botón "cerca de mí" para clientes con sesión iniciada. */
   highlightLocate?: boolean;
@@ -40,20 +40,23 @@ export function CatalogFilters({
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState(false);
 
-  function apply(pais: string, depto: string, ciudad: string) {
+  const [query, setQuery] = useState(selected.q);
+
+  function apply(pais: string, depto: string, ciudad: string, q = selected.q) {
     const params = new URLSearchParams();
     if (pais) params.set("pais", pais);
     if (depto) params.set("depto", depto);
     if (ciudad) params.set("ciudad", ciudad);
+    if (q.trim()) params.set("q", q.trim());
     const qs = params.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
-  function onChange(pais: string, depto: string, ciudad: string) {
+  function onChange(pais: string, depto: string, ciudad: string, q?: string) {
     try {
       sessionStorage.setItem(AUTO_FLAG, "1");
     } catch {}
-    apply(pais, depto, ciudad);
+    apply(pais, depto, ciudad, q);
   }
 
   function locateMe() {
@@ -86,7 +89,7 @@ export function CatalogFilters({
 
   // Autodetección: zona horaria → país (y ciudad si coincide con la de la TZ).
   useEffect(() => {
-    const hasFilters = selected.pais || selected.depto || selected.ciudad;
+    const hasFilters = selected.pais || selected.depto || selected.ciudad || selected.q;
     let done = false;
     try {
       done = sessionStorage.getItem(AUTO_FLAG) === "1";
@@ -127,6 +130,30 @@ export function CatalogFilters({
 
   return (
     <div className="space-y-2">
+      <form
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onChange(selected.pais, selected.depto, selected.ciudad, query);
+        }}
+        className="flex max-w-3xl gap-2"
+      >
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="🔍 Buscar por nombre, ciudad o descripción"
+          aria-label="Buscar perfiles"
+          maxLength={80}
+          className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:border-fuchsia-700 focus:outline-none"
+        />
+        <button
+          type="submit"
+          className="rounded-xl border border-fuchsia-700 bg-fuchsia-950/40 px-4 py-2.5 text-sm font-medium text-fuchsia-200 transition hover:bg-fuchsia-950/70"
+        >
+          Buscar
+        </button>
+      </form>
       {highlightLocate && !selected.ciudad && (
         <div>
           <button

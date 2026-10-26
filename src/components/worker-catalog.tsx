@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getCurrentUser, isPremium } from "@/lib/auth";
 import { formatLocation } from "@/lib/format";
@@ -11,6 +12,8 @@ export type CatalogFilterParams = {
   depto?: string;
   ciudad?: string;
   page?: string;
+  /** Texto libre: nombre, descripción, ciudad o agencia. */
+  q?: string;
   /** false en landings por ciudad, donde el filtro viene fijo en la URL. */
   showFilters?: boolean;
 };
@@ -22,11 +25,12 @@ export const VISIBLE_WORKER_PROFILE = {
 
 const PAGE_SIZE = 24;
 
-function pageHref(page: number, pais?: string, depto?: string, ciudad?: string) {
+function pageHref(page: number, pais?: string, depto?: string, ciudad?: string, q?: string) {
   const qs = new URLSearchParams();
   if (pais) qs.set("pais", pais);
   if (depto) qs.set("depto", depto);
   if (ciudad) qs.set("ciudad", ciudad);
+  if (q) qs.set("q", q);
   if (page > 1) qs.set("page", String(page));
   const s = qs.toString();
   return s ? `?${s}` : "?";
@@ -41,13 +45,16 @@ export async function WorkerCatalog({
   depto,
   ciudad,
   page,
+  q,
   showFilters = true,
 }: CatalogFilterParams) {
   const currentPage = Math.max(1, Math.floor(Number(page)) || 1);
+  const query = q?.trim().slice(0, 80) || undefined;
+  const contains = { contains: query, mode: "insensitive" as const };
 
-  const workerWhere = {
-    role: "WORKER" as const,
-    status: "ACTIVE" as const,
+  const workerWhere: Prisma.UserWhereInput = {
+    role: "WORKER",
+    status: "ACTIVE",
     verifiedAt: { not: null },
     profile: {
       visible: true,
@@ -55,6 +62,16 @@ export async function WorkerCatalog({
       ...(depto ? { stateCode: depto } : {}),
       ...(ciudad ? { city: ciudad } : {}),
     },
+    ...(query
+      ? {
+          OR: [
+            { displayName: contains },
+            { profile: { bio: contains } },
+            { profile: { city: contains } },
+            { agency: { name: contains } },
+          ],
+        }
+      : {}),
   };
 
   const [currentUser, workers, totalCount, geoRows] = await Promise.all([
@@ -137,7 +154,7 @@ export async function WorkerCatalog({
           countries={countries}
           states={states}
           cities={cities}
-          selected={{ pais: pais ?? "", depto: depto ?? "", ciudad: ciudad ?? "" }}
+          selected={{ pais: pais ?? "", depto: depto ?? "", ciudad: ciudad ?? "", q: query ?? "" }}
           geoPairs={geoPairs}
           highlightLocate={currentUser?.role === "CLIENT"}
         />
@@ -147,7 +164,7 @@ export async function WorkerCatalog({
         <EmptyState
           title="No hay perfiles disponibles"
           description={
-            pais || depto || ciudad
+            pais || depto || ciudad || query
               ? "No encontramos perfiles con esos filtros. Prueba ampliando la búsqueda."
               : "Vuelve pronto: nuevos perfiles se verifican cada día."
           }
@@ -180,7 +197,7 @@ export async function WorkerCatalog({
             <nav aria-label="Paginación" className="flex items-center justify-center gap-3 pt-2">
               {currentPage > 1 ? (
                 <Link
-                  href={pageHref(currentPage - 1, pais, depto, ciudad)}
+                  href={pageHref(currentPage - 1, pais, depto, ciudad, query)}
                   className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition hover:border-fuchsia-700 hover:text-white"
                 >
                   ← Anterior
@@ -195,7 +212,7 @@ export async function WorkerCatalog({
               </span>
               {currentPage < totalPages ? (
                 <Link
-                  href={pageHref(currentPage + 1, pais, depto, ciudad)}
+                  href={pageHref(currentPage + 1, pais, depto, ciudad, query)}
                   className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition hover:border-fuchsia-700 hover:text-white"
                 >
                   Siguiente →
