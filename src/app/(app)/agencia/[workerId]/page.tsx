@@ -73,6 +73,8 @@ export default async function AgencyWorkerPage({
             bio: worker.profile?.bio ?? "",
             languages: worker.profile?.languages ?? "",
             visible: worker.profile?.visible ?? true,
+            phone: worker.phone ?? "",
+            showPhone: worker.profile?.showPhone ?? true,
             country: worker.profile?.countryCode ?? "",
             state: worker.profile?.stateCode ?? "",
             city: worker.profile?.city ?? "",

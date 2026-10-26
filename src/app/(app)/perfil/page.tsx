@@ -64,6 +64,8 @@ export default async function PerfilPage() {
             bio: profile?.bio ?? "",
             languages: profile?.languages ?? "",
             visible: profile?.visible ?? true,
+            phone: user.phone ?? "",
+            showPhone: profile?.showPhone ?? true,
             country: profile?.countryCode ?? "",
             state: profile?.stateCode ?? "",
             city: profile?.city ?? "",

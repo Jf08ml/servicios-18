@@ -254,7 +254,11 @@ export function RegisterForm({
         <label htmlFor="phone" className={label}>
           Teléfono{" "}
           <span className="text-zinc-500">
-            {phoneRequired ? "(nunca es público)" : "(opcional, nunca es público)"}
+            {role === "WORKER"
+              ? "(WhatsApp: lo ven clientes con cuenta; puedes ocultarlo en Mi perfil)"
+              : phoneRequired
+                ? "(nunca es público)"
+                : "(opcional, nunca es público)"}
           </span>
         </label>
         <input

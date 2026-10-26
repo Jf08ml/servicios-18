@@ -23,6 +23,8 @@ export function ProfileForm({
     bio: string;
     languages: string;
     visible: boolean;
+    phone: string;
+    showPhone: boolean;
     country: string;
     state: string;
     city: string;
@@ -150,6 +152,44 @@ export function ProfileForm({
           className={input}
         />
       </div>
+
+      <div>
+        <label htmlFor="phone" className={label}>
+          {isWorker ? "WhatsApp" : "Teléfono"}{" "}
+          {!isWorker && <span className="text-zinc-500">(opcional, nunca es público)</span>}
+        </label>
+        <input
+          id="phone"
+          name="phone"
+          type="tel"
+          required={isWorker}
+          maxLength={20}
+          defaultValue={defaults.phone}
+          placeholder="+57 300 123 4567"
+          className={input}
+        />
+        <p className="mt-1 text-xs text-zinc-500">
+          Con indicativo del país. Si no lo pones, usamos el del país de tu perfil.
+        </p>
+      </div>
+
+      {isWorker && (
+        <label className="flex items-start gap-2 text-sm text-zinc-300">
+          <input
+            type="checkbox"
+            name="showPhone"
+            defaultChecked={defaults.showPhone}
+            className="mt-0.5 accent-fuchsia-600"
+          />
+          <span>
+            Mostrar mi WhatsApp en mi perfil.
+            <span className="block text-xs text-zinc-500">
+              Solo lo ven clientes con cuenta, como botón para escribirte. Si lo
+              desactivas, te contactan por el chat de la plataforma.
+            </span>
+          </span>
+        </label>
+      )}
 
       {isWorker && (
         <label className="flex items-start gap-2 text-sm text-zinc-300">

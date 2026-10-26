@@ -128,6 +128,9 @@ export default async function PerfilDetallePage({
   }
 
   const registerCta = `/login?next=/perfiles/${canonicalSlug}`;
+  // WhatsApp solo con sesión y si ella no lo ocultó en Mi perfil.
+  const contactPhone =
+    user && worker.phone && (worker.profile?.showPhone ?? true) ? worker.phone : null;
 
   const jsonLd = publiclyVisible
     ? {
@@ -227,7 +230,7 @@ export default async function PerfilDetallePage({
           <ProfileAvatarButton
             photoPath={worker.profile?.photoPath}
             name={worker.displayName}
-            phone={user ? worker.phone : null}
+            phone={contactPhone}
             className="h-20 w-20 text-2xl"
           />
           <div>
@@ -291,14 +294,14 @@ export default async function PerfilDetallePage({
           >
             📅 Agendar cita
           </a>
-          {worker.phone && (
+          {contactPhone && (
             <a
-              href={whatsappHref(worker.phone)}
+              href={whatsappHref(contactPhone)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-lg border border-emerald-700 bg-emerald-950/40 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-900/50"
             >
-              📱 {worker.phone}
+              📱 {contactPhone}
             </a>
           )}
         </div>
@@ -342,7 +345,7 @@ export default async function PerfilDetallePage({
           <h2 className="mb-3 font-semibold text-white">Galería</h2>
           <MediaGallery
             ownerName={worker.displayName}
-            phone={user ? worker.phone : null}
+            phone={contactPhone}
             items={worker.mediaItems.map((m) => ({
               id: m.id,
               kind: m.kind,

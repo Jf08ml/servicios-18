@@ -80,7 +80,10 @@ export function WorkerForm() {
       </div>
       <div className="sm:col-span-2">
         <label htmlFor="worker-phone" className={label}>
-          Teléfono <span className="text-zinc-500">(opcional, nunca es público)</span>
+          WhatsApp{" "}
+          <span className="text-zinc-500">
+            (opcional; lo ven clientes con cuenta, se puede ocultar en su perfil)
+          </span>
         </label>
         <input id="worker-phone" name="phone" type="tel" maxLength={20} className={input} />
       </div>

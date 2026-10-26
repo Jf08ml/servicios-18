@@ -208,6 +208,8 @@ model Profile {
   photoPath String?
   languages String?
   visible   Boolean  @default(true)
+  // Muestra User.phone como botón de WhatsApp a clientes con sesión.
+  showPhone Boolean  @default(true)
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
