@@ -5,14 +5,23 @@ import { sendMessageAction, type SentMessage } from "../actions";
 
 const POLL_MS = 4000;
 
+/** Aviso al cliente cuando la profesional aún no reclamó su cuenta. */
+export type PendingNotice = {
+  // true si le estamos avisando por WhatsApp (gateway activo y no se dio de baja).
+  contacting: boolean;
+  whatsappUrl: string | null;
+};
+
 export function ChatThread({
   conversationId,
   meId,
   initialMessages,
+  pendingNotice,
 }: {
   conversationId: string;
   meId: string;
   initialMessages: SentMessage[];
+  pendingNotice?: PendingNotice | null;
 }) {
   const [messages, setMessages] = useState<SentMessage[]>(initialMessages);
   const [text, setText] = useState("");
@@ -56,9 +65,15 @@ export function ChatThread({
     };
   }, [conversationId]);
 
+  // Se muestra tras el primer mensaje del cliente y hasta que ella responda.
+  const showNotice =
+    !!pendingNotice &&
+    messages.some((m) => m.senderId === meId) &&
+    !messages.some((m) => m.senderId !== meId);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+  }, [messages.length, showNotice]);
 
   function send() {
     const body = text.trim();
@@ -103,6 +118,27 @@ export function ChatThread({
             </div>
           );
         })}
+        {showNotice && pendingNotice && (
+          <div className="mx-auto max-w-[90%] rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-center text-xs text-zinc-400">
+            <p>
+              {pendingNotice.contacting
+                ? "Estamos contactando a la profesional para que te responda por aquí."
+                : "La profesional aún no ha activado su cuenta y puede tardar en responder."}
+              {pendingNotice.whatsappUrl &&
+                " Si tarda mucho, también puedes escribirle por WhatsApp."}
+            </p>
+            {pendingNotice.whatsappUrl && (
+              <a
+                href={pendingNotice.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-700 bg-emerald-950/40 px-3 py-1.5 font-semibold text-emerald-300 transition hover:bg-emerald-900/50"
+              >
+                📱 Escribir por WhatsApp
+              </a>
+            )}
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
